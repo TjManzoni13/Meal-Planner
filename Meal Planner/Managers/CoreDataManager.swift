@@ -1,10 +1,3 @@
-//
-//  CoreDataManager.swift
-//  Meal Planner
-//
-//  Created by Tj Manzoni on 10/07/2025.
-//
-
 import Foundation
 import CoreData
 
@@ -18,15 +11,7 @@ class CoreDataManager {
     }
 
     private init() {
-        container = NSPersistentCloudKitContainer(name: "Meal_Planner")
-
-        guard let description = container.persistentStoreDescriptions.first else {
-            fatalError("No persistent store description found")
-        }
-
-        // Enable CloudKit syncing
-        description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-        description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(containerIdentifier: "iCloud.com.tjmanzoni.meal-planner")
+        container = NSPersistentContainer(name: "Meal_Planner")
 
         container.loadPersistentStores { storeDescription, error in
             if let error = error {
@@ -35,6 +20,7 @@ class CoreDataManager {
         }
 
         container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }
 
     func saveContext() {
