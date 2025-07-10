@@ -122,6 +122,15 @@ struct ShoppingListView: View {
             .onChange(of: weekPlanManager.weekPlan) { _, plan in
                 builder.build(from: plan, household: householdManager.household)
             }
+            .onReceive(weekPlanManager.objectWillChange) { _ in
+                // Rebuild shopping list when weekPlanManager changes (e.g., when "already have" is toggled)
+                print("WeekPlanManager changed, rebuilding shopping list")
+                builder.build(from: weekPlanManager.weekPlan, household: householdManager.household)
+            }
+            .onAppear {
+                // Rebuild shopping list when view appears
+                builder.build(from: weekPlanManager.weekPlan, household: householdManager.household)
+            }
         }
     }
 

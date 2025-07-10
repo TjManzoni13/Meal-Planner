@@ -1,0 +1,104 @@
+🧾 Meal Planner App — Functional Requirements (MVP Version)
+
+⸻
+
+🎨 General UI/UX Design Goals
+	•	Style: Bright, colorful, minimalistic.
+	•	Navigation: Tab-based or bottom-bar for switching between the three core pages.
+	•	Persistence: All user-entered data is stored locally using UserDefaults or CoreData.
+
+⸻
+
+1️⃣ Page One – Weekly Meal Planner
+
+Components:
+	•	Header (Week Navigator)
+	•	Show current week (Mon–Sun).
+	•	Arrows or swipe to go forward/back in weeks.
+	•	Historical weeks are saved and viewable.
+	•	Week View Grid
+	•	Days: Mon to Sun.
+	•	Sections per day:
+	•	Breakfast
+	•	Lunch
+	•	Dinner
+	•	Other
+	•	Each section contains:
+	•	Dropdown (combo box) with:
+	•	List of meals (from user-created meal list, filtered by tag: breakfast/lunch/dinner/multiple/all).
+	•	Searchable with autocomplete.
+	•	Option to manually add ingredient-based meal if not selecting a meal.
+	•	Tick box: “Ingredients already have” (on each meal).
+
+Functionality:
+	•	Selecting a meal auto-fills from existing meals (based on tag).
+	•	Manually entered ingredients also allowed.
+	•	Persist meal selections by week/day/section in local storage.
+
+⸻
+
+2️⃣ Page Two – Shopping List
+
+Components:
+	•	Everyday Items Section
+	•	Always shown at the top.
+	•	Defined by the user in Page 3.
+	•	Auto-generated Shopping List
+	•	Pulled from all meals and manual entries from current week’s meal plan.
+	•	Structure:
+	•	Everyday Items (fixed).
+	•	Ingredients from meals.
+	•	Manually added items (input at bottom).
+	•	Duplicate Highlighting
+	•	Ingredients with the same name are highlighted in matching colors.
+	•	Example: two “carrots” entries = same red background.
+	•	Display item twice but inform user of duplication.
+	•	Tick Items
+	•	Ingredients/meals can be checked.
+	•	Checked items move to bottom of list under a “Ticked Off” section.
+	•	Manual Add
+	•	Text field + “Add” button at the bottom to enter custom shopping items.
+
+⸻
+
+3️⃣ Page Three – Meal & Usuals Management
+
+Sections:
+	1.	Usual Items
+	•	List of items that will always appear in the shopping list.
+	•	Ability to add/edit/delete usual items.
+	2.	Meal Creator
+	•	Fields:
+	•	Meal Name
+	•	Tags: Breakfast / Lunch / Dinner / Multiple / All
+	•	Ingredients List (multi-entry field)
+	•	Optional Recipe Instructions (multiline text)
+	•	Save button: Persists meal in local storage.
+
+Functionality:
+	•	Meals created here are selectable in Page 1 dropdowns.
+	•	Tags control which dropdowns they appear in.
+	•	Editing and deleting meals supported.
+	•	All data stored locally on device.
+
+⸻
+
+📁 Code Architecture Suggestions
+	•	Use MVVM pattern to keep code clean.
+	•	Create helpers and managers in separate files:
+	•	StorageManager.swift – handles read/write to local storage.
+	•	MealModel.swift, WeekModel.swift, IngredientModel.swift – models.
+	•	ColorHighlighter.swift – logic to assign colors for duplicates.
+	•	MealHelper.swift – filters meals by tag, search logic.
+	•	Use Codable structs for storing models in UserDefaults or switch to CoreData for better data relations later.
+
+⸻
+
+🧪 Future Enhancements (Not for MVP)
+
+(Optional for later sprints)
+
+	•	iCloud sync.
+	•	Image support for meals.
+	•	Export shopping list (PDF/Share).
+	•	AI-based meal suggestions.

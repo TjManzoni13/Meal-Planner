@@ -30,6 +30,8 @@ class ShoppingListBuilder: ObservableObject {
             return
         }
 
+
+        
         // Clear previous items
         clearAllItems()
         
@@ -45,13 +47,45 @@ class ShoppingListBuilder: ObservableObject {
 
         // Add Meal Ingredients
         if let days = weekPlan.days as? Set<MealDay> {
+            print("Processing \(days.count) days for shopping list")
             for day in days {
-                for meal in [day.breakfast, day.lunch, day.dinner, day.other] {
-                    guard let meal = meal, let mealName = meal.name else { continue }
+                // Skip ingredients if day is marked as "already have"
+                if day.alreadyHave {
+                    print("Skipping day with alreadyHave = true: \(day.date?.description ?? "unknown")")
+                    continue
+                }
+                
+                print("Processing day: \(day.date?.description ?? "unknown") - alreadyHave: \(day.alreadyHave)")
+                let meals = [day.breakfast, day.lunch, day.dinner, day.other]
+                print("Day has \(meals.compactMap { $0 }.count) meals assigned")
+                for meal in meals {
+                    guard let meal = meal, let mealName = meal.name else { 
+                        print("Skipping nil meal or meal without name")
+                        continue 
+                    }
+                    print("Processing meal: \(mealName)")
                     if let ingredients = meal.ingredients as? Set<Ingredient> {
+                        print("Adding \(ingredients.count) ingredients from meal: \(mealName)")
                         for ing in ingredients {
                             mealItems.append(ShoppingListItem(name: ing.name ?? "", source: "Meal: \(mealName)"))
                         }
+                    } else {
+                        print("No ingredients found for meal: \(mealName)")
+                    }
+                }
+            }
+        }
+
+        // Add Manual Slot Ingredients
+        if let slotIngredients = weekPlan.manualSlotIngredients as? Set<ManualSlotIngredient> {
+            for ing in slotIngredients {
+                if let name = ing.name {
+                    // Check if this ingredient belongs to a day marked as "already have"
+                    let shouldInclude = !isIngredientFromAlreadyHaveDay(ing, weekPlan: weekPlan)
+                    if shouldInclude {
+                        manualItems.append(ShoppingListItem(name: name, source: "Manual Slot"))
+                    } else {
+                        print("Excluding manual ingredient '\(name)' because day is marked as 'already have'")
                     }
                 }
             }
@@ -63,6 +97,8 @@ class ShoppingListBuilder: ObservableObject {
                 manualItems.append(ShoppingListItem(name: ing.name ?? "", source: "Manual"))
             }
         }
+        
+        print("Final shopping list counts - mealItems: \(mealItems.count), manualItems: \(manualItems.count)")
     }
 
     func addManualItem(_ name: String) {
@@ -114,6 +150,9 @@ class ShoppingListBuilder: ObservableObject {
         
         if let days = weekPlan?.days as? Set<MealDay> {
             for day in days {
+                // Skip ingredients if day is marked as "already have"
+                if day.alreadyHave { continue }
+                
                 for meal in [day.breakfast, day.lunch, day.dinner, day.other] {
                     if let ingredients = meal?.ingredients as? Set<Ingredient> {
                         allIngredients.append(contentsOf: ingredients.compactMap { $0.name })
@@ -147,5 +186,20 @@ class ShoppingListBuilder: ObservableObject {
             duplicateColors[ingredientName] = colors[colorIndex % colors.count]
             colorIndex += 1
         }
+    }
+    
+    private func isIngredientFromAlreadyHaveDay(_ ingredient: ManualSlotIngredient, weekPlan: WeekMealPlan) -> Bool {
+        guard let ingredientDate = ingredient.date else { return false }
+        
+        // Check if the ingredient's date corresponds to a day marked as "already have"
+        if let days = weekPlan.days as? Set<MealDay> {
+            for day in days {
+                if let dayDate = day.date, Calendar.current.isDate(dayDate, inSameDayAs: ingredientDate) {
+                    return day.alreadyHave
+                }
+            }
+        }
+        
+        return false
     }
 }
