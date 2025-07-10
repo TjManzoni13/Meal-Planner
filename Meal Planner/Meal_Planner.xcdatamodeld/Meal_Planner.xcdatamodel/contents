@@ -26,14 +26,18 @@
         <attribute name="tags" optional="YES" attributeType="String"/>
         <relationship name="household" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Household" inverseName="meals" inverseEntity="Household"/>
         <relationship name="ingredients" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Ingredient" inverseName="meal" inverseEntity="Ingredient"/>
+        <relationship name="breakfastForDay" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MealDay" inverseName="breakfast" inverseEntity="MealDay"/>
+        <relationship name="lunchForDay" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MealDay" inverseName="lunch" inverseEntity="MealDay"/>
+        <relationship name="dinnerForDay" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MealDay" inverseName="dinner" inverseEntity="MealDay"/>
+        <relationship name="otherForDay" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MealDay" inverseName="other" inverseEntity="MealDay"/>
     </entity>
     <entity name="MealDay" representedClassName="MealDay" syncable="YES" codeGenerationType="class">
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <relationship name="breakfast" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Meal"/>
-        <relationship name="dinner" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Meal"/>
-        <relationship name="lunch" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Meal"/>
-        <relationship name="other" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Meal"/>
+        <relationship name="breakfast" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Meal" inverseName="breakfastForDay" inverseEntity="Meal"/>
+        <relationship name="dinner" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Meal" inverseName="dinnerForDay" inverseEntity="Meal"/>
+        <relationship name="lunch" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Meal" inverseName="lunchForDay" inverseEntity="Meal"/>
+        <relationship name="other" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Meal" inverseName="otherForDay" inverseEntity="Meal"/>
         <relationship name="weekPlan" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="WeekMealPlan" inverseName="days" inverseEntity="WeekMealPlan"/>
     </entity>
     <entity name="UsualItem" representedClassName="UsualItem" syncable="YES" codeGenerationType="class">

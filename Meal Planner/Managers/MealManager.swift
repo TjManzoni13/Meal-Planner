@@ -56,6 +56,6 @@ class MealManager: ObservableObject {
     }
 
     func meals(forTag tag: String) -> [Meal] {
-        return meals.filter { $0.tags.lowercased().contains(tag.lowercased()) || $0.tags.lowercased().contains("all") }
+        return meals.filter { ($0.tags ?? "").lowercased().contains(tag.lowercased()) || ($0.tags ?? "").lowercased().contains("all") }
     }
 }
