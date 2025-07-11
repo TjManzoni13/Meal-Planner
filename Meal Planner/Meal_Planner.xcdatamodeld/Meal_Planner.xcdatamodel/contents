@@ -41,6 +41,16 @@
         <relationship name="other" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Meal" inverseName="otherForDay" inverseEntity="Meal"/>
         <relationship name="weekPlan" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="WeekMealPlan" inverseName="days" inverseEntity="WeekMealPlan"/>
     </entity>
+    <entity name="ShoppingListItem" representedClassName="ShoppingListItem" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isTicked" optional="YES" attributeType="Boolean" usesScalarValueType="YES" defaultValueString="NO"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="originDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="originMeal" optional="YES" attributeType="String"/>
+        <attribute name="originSlot" optional="YES" attributeType="String"/>
+        <attribute name="originType" optional="YES" attributeType="String"/>
+        <relationship name="weekPlan" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="WeekMealPlan" inverseName="shoppingItems" inverseEntity="WeekMealPlan"/>
+    </entity>
     <entity name="UsualItem" representedClassName="UsualItem" syncable="YES" codeGenerationType="class">
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="name" optional="YES" attributeType="String"/>
@@ -53,6 +63,7 @@
         <relationship name="household" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Household" inverseName="weekPlans" inverseEntity="Household"/>
         <relationship name="manualIngredients" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Ingredient" inverseName="weekPlan" inverseEntity="Ingredient"/>
         <relationship name="manualSlotIngredients" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ManualSlotIngredient" inverseName="weekPlan" inverseEntity="ManualSlotIngredient"/>
+        <relationship name="shoppingItems" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ShoppingListItem" inverseName="weekPlan" inverseEntity="ShoppingListItem"/>
     </entity>
     <entity name="ManualSlotIngredient" representedClassName="ManualSlotIngredient" syncable="YES" codeGenerationType="class">
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>

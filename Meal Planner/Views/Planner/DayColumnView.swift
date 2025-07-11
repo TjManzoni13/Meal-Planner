@@ -53,7 +53,7 @@ struct DayColumnView: View {
                 Spacer()
             }
             .padding(.bottom, 4)
-            .onChange(of: day.alreadyHave) { _, _ in
+            .onChange(of: day.alreadyHave) { oldValue, newValue in
                 // Force UI update when alreadyHave changes
             }
 

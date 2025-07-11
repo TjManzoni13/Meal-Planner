@@ -124,8 +124,8 @@ struct MealsAndUsualsView: View {
             .onAppear {
                 householdManager.loadOrCreateHousehold()
             }
-            .onChange(of: householdManager.household) { _, household in
-                if let household = household {
+            .onChange(of: householdManager.household) { oldValue, newValue in
+                if let household = newValue {
                     mealManager.fetchMeals(for: household)
                 }
             }

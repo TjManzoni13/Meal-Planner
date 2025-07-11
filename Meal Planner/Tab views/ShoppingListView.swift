@@ -3,88 +3,72 @@ import SwiftUI
 struct ShoppingListView: View {
     @StateObject private var householdManager = HouseholdManager()
     @StateObject private var weekPlanManager = WeekPlanManager()
-    @StateObject private var builder = ShoppingListBuilder()
+    @StateObject private var shoppingListManager = ShoppingListManager()
 
     @State private var newManualItem = ""
-    @State private var showingAddItem = false
 
     var body: some View {
         NavigationView {
             VStack {
+                // Generate Shopping List Button
+                Button(action: {
+                    generateShoppingList()
+                }) {
+                    HStack {
+                        Image(systemName: "cart.badge.plus")
+                            .foregroundColor(.white)
+                        Text("Generate Shopping List")
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(10)
+                }
+                .padding(.horizontal)
+                .padding(.top)
+
                 List {
-                    // Everyday Items Section
-                    Section(header: Text("Everyday Items").font(.headline)) {
-                        ForEach(builder.everydayItems, id: \.self) { item in
-                            if !builder.isTicked(item) {
+                    // Usual Items Section
+                    if !shoppingListManager.shoppingItems.filter({ $0.originType == "usual" }).isEmpty {
+                        Section(header: Text("Usual Items").font(.headline)) {
+                            ForEach(shoppingListManager.shoppingItems.filter({ $0.originType == "usual" }), id: \.self) { item in
                                 ShoppingListItemRow(
                                     item: item,
-                                    isDuplicate: builder.isDuplicate(item),
-                                    duplicateColor: builder.duplicateColor(for: item),
                                     onToggle: {
-                                        builder.toggleItem(item)
+                                        shoppingListManager.toggleItem(item)
                                     }
                                 )
                             }
                         }
                     }
 
-                    // Auto-generated Shopping List
-                    Section(header: Text("From Meal Plan").font(.headline)) {
-                        ForEach(builder.mealItems, id: \.self) { item in
-                            if !builder.isTicked(item) {
+                    // Generated Items Section
+                    let generatedItems = shoppingListManager.shoppingItems.filter({ $0.originType != "usual" })
+                    if !generatedItems.isEmpty {
+                        Section(header: Text("Generated Items").font(.headline)) {
+                            ForEach(generatedItems, id: \.self) { item in
                                 ShoppingListItemRow(
                                     item: item,
-                                    isDuplicate: builder.isDuplicate(item),
-                                    duplicateColor: builder.duplicateColor(for: item),
                                     onToggle: {
-                                        builder.toggleItem(item)
+                                        shoppingListManager.toggleItem(item)
                                     }
                                 )
                             }
                         }
                     }
 
-                    // Manual Items
-                    if !builder.manualItems.isEmpty {
-                        Section(header: Text("Manual Items").font(.headline)) {
-                            ForEach(builder.manualItems, id: \.self) { item in
-                                if !builder.isTicked(item) {
-                                    ShoppingListItemRow(
-                                        item: item,
-                                        isDuplicate: builder.isDuplicate(item),
-                                        duplicateColor: builder.duplicateColor(for: item),
-                                        onToggle: {
-                                            builder.toggleItem(item)
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    // Ticked Off Items
-                    if !builder.tickedOff.isEmpty {
+                    // Ticked Off Items Section
+                    if !shoppingListManager.tickedOffItems.isEmpty {
                         Section(header: Text("Ticked Off").font(.headline)) {
-                            ForEach(Array(builder.tickedOff), id: \.self) { item in
-                                HStack {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.green)
-                                        .font(.caption)
-                                    
-                                    Text(item.name)
-                                        .strikethrough()
-                                        .foregroundColor(.secondary)
-                                    
-                                    Spacer()
-                                    
-                                    Text(item.source)
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    builder.toggleItem(item)
-                                }
+                            ForEach(shoppingListManager.tickedOffItems, id: \.self) { item in
+                                TickedOffItemRow(
+                                    item: item,
+                                    onToggle: {
+                                        shoppingListManager.toggleItem(item)
+                                    }
+                                )
                             }
                         }
                     }
@@ -110,35 +94,54 @@ struct ShoppingListView: View {
                 }
             }
             .navigationTitle("Shopping List")
-            .onAppear {
-                householdManager.loadOrCreateHousehold()
-            }
-            .onChange(of: householdManager.household) { _, household in
-                if let household = household {
-                    let startOfWeek = Calendar.current.startOfWeek(for: Date())
-                    weekPlanManager.fetchOrCreateWeek(for: startOfWeek, household: household)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if !shoppingListManager.tickedOffItems.isEmpty {
+                        Button("Clear Ticked Off") {
+                            shoppingListManager.clearTickedOffItems()
+                        }
+                        .foregroundColor(.red)
+                    }
                 }
             }
-            .onChange(of: weekPlanManager.weekPlan) { _, plan in
-                builder.build(from: plan, household: householdManager.household)
-            }
-            .onReceive(weekPlanManager.objectWillChange) { _ in
-                // Rebuild shopping list when weekPlanManager changes (e.g., when "already have" is toggled)
-                print("WeekPlanManager changed, rebuilding shopping list")
-                builder.build(from: weekPlanManager.weekPlan, household: householdManager.household)
-            }
             .onAppear {
-                // Rebuild shopping list when view appears
-                builder.build(from: weekPlanManager.weekPlan, household: householdManager.household)
+                householdManager.loadOrCreateHousehold()
+                loadShoppingList()
+            }
+            .onChange(of: householdManager.household) { oldValue, newValue in
+                if let household = newValue {
+                    let startOfWeek = Calendar.current.startOfWeek(for: Date())
+                    weekPlanManager.fetchOrCreateWeek(for: startOfWeek, household: household)
+                    loadShoppingList()
+                }
+            }
+            .onChange(of: weekPlanManager.weekPlan) { oldValue, newValue in
+                loadShoppingList()
             }
         }
     }
 
+    // MARK: - Private Methods
+    
+    /// Generates the shopping list from the current week plan
+    private func generateShoppingList() {
+        shoppingListManager.generateShoppingList(
+            for: weekPlanManager.weekPlan,
+            household: householdManager.household
+        )
+    }
+    
+    /// Loads the shopping list from Core Data
+    private func loadShoppingList() {
+        shoppingListManager.loadShoppingList(from: weekPlanManager.weekPlan)
+    }
+    
+    /// Adds a manual item to the shopping list
     private func addManualItem() {
         let trimmedItem = newManualItem.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedItem.isEmpty else { return }
         
-        builder.addManualItem(trimmedItem)
+        shoppingListManager.addManualItem(trimmedItem, to: weekPlanManager.weekPlan)
         newManualItem = ""
     }
 }
@@ -146,8 +149,6 @@ struct ShoppingListView: View {
 // MARK: - Shopping List Item Row
 struct ShoppingListItemRow: View {
     let item: ShoppingListItem
-    let isDuplicate: Bool
-    let duplicateColor: Color
     let onToggle: () -> Void
 
     var body: some View {
@@ -160,31 +161,104 @@ struct ShoppingListItemRow: View {
                     onToggle()
                 }
             
-            // Item name with duplicate highlighting
-            Text(item.name)
-                .background(
-                    isDuplicate ? duplicateColor.opacity(0.3) : Color.clear
-                )
-                .cornerRadius(4)
+            // Item name
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.name ?? "")
+                    .font(.body)
+                
+                // Show origin information
+                if let originType = item.originType {
+                    Text(originDescription(for: originType, item: item))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
             
             Spacer()
-            
-            // Source and duplicate indicator
-            HStack(spacing: 4) {
-                if isDuplicate {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
-                        .font(.caption2)
-                }
-                
-                Text(item.source)
-                    .font(.caption)
-                    .foregroundColor(.gray)
-            }
         }
         .contentShape(Rectangle())
         .onTapGesture {
             onToggle()
+        }
+    }
+    
+    /// Returns a description of the item's origin
+    private func originDescription(for originType: String, item: ShoppingListItem) -> String {
+        switch originType {
+        case "usual":
+            return "Usual Item"
+        case "meal":
+            if let mealName = item.originMeal, let slot = item.originSlot {
+                return "\(mealName) (\(slot.capitalized))"
+            }
+            return "Meal"
+        case "manual_slot":
+            if let slot = item.originSlot {
+                return "Manual (\(slot.capitalized))"
+            }
+            return "Manual"
+        case "manual":
+            return "Manual"
+        default:
+            return "Unknown"
+        }
+    }
+}
+
+// MARK: - Ticked Off Item Row
+struct TickedOffItemRow: View {
+    let item: ShoppingListItem
+    let onToggle: () -> Void
+
+    var body: some View {
+        HStack {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundColor(.green)
+                .font(.caption)
+                .onTapGesture {
+                    onToggle()
+                }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.name ?? "")
+                    .strikethrough()
+                    .foregroundColor(.secondary)
+                
+                // Show origin information
+                if let originType = item.originType {
+                    Text(originDescription(for: originType, item: item))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Spacer()
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onToggle()
+        }
+    }
+    
+    /// Returns a description of the item's origin
+    private func originDescription(for originType: String, item: ShoppingListItem) -> String {
+        switch originType {
+        case "usual":
+            return "Usual Item"
+        case "meal":
+            if let mealName = item.originMeal, let slot = item.originSlot {
+                return "\(mealName) (\(slot.capitalized))"
+            }
+            return "Meal"
+        case "manual_slot":
+            if let slot = item.originSlot {
+                return "Manual (\(slot.capitalized))"
+            }
+            return "Manual"
+        case "manual":
+            return "Manual"
+        default:
+            return "Unknown"
         }
     }
 }
