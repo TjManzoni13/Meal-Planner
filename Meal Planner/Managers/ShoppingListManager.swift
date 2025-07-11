@@ -146,20 +146,20 @@ class ShoppingListManager: ObservableObject {
     private func addMealPlanItems(from weekPlan: WeekMealPlan) {
         if let days = weekPlan.days as? Set<MealDay> {
             for day in days {
-                // Skip if day is marked as "already have"
-                if day.alreadyHave { continue }
-                
                 let dayDate = day.date ?? Date()
                 
-                // Process each meal slot
+                // Process each meal slot with individual "already have" checks
                 let mealSlots = [
-                    ("breakfast", day.breakfast),
-                    ("lunch", day.lunch),
-                    ("dinner", day.dinner),
-                    ("other", day.other)
+                    ("breakfast", day.breakfast, day.alreadyHaveBreakfast),
+                    ("lunch", day.lunch, day.alreadyHaveLunch),
+                    ("dinner", day.dinner, day.alreadyHaveDinner),
+                    ("other", day.other, day.alreadyHaveOther)
                 ]
                 
-                for (slotName, meal) in mealSlots {
+                for (slotName, meal, alreadyHave) in mealSlots {
+                    // Skip if this specific slot is marked as "already have"
+                    if alreadyHave { continue }
+                    
                     if let meal = meal {
                         // Add ingredients from assigned meal
                         if let ingredients = meal.ingredients as? Set<Ingredient> {
@@ -184,15 +184,15 @@ class ShoppingListManager: ObservableObject {
         // Add manual slot ingredients
         if let slotIngredients = weekPlan.manualSlotIngredients as? Set<ManualSlotIngredient> {
             for ingredient in slotIngredients {
-                // Check if this ingredient belongs to a day marked as "already have"
-                if let ingredientDate = ingredient.date {
-                    let shouldInclude = !isIngredientFromAlreadyHaveDay(ingredientDate, weekPlan: weekPlan)
+                // Check if this ingredient belongs to a slot marked as "already have"
+                if let ingredientDate = ingredient.date, let slot = ingredient.slot {
+                    let shouldInclude = !isIngredientFromAlreadyHaveSlot(ingredientDate, slot: slot, weekPlan: weekPlan)
                     if shouldInclude {
                         let item = ShoppingListItem(context: context)
                         item.id = UUID()
                         item.name = ingredient.name ?? ""
                         item.originType = "manual_slot"
-                        item.originSlot = ingredient.slot
+                        item.originSlot = slot
                         item.originDate = ingredientDate
                         item.isTicked = false
                         
@@ -203,12 +203,18 @@ class ShoppingListManager: ObservableObject {
         }
     }
     
-    /// Checks if an ingredient date corresponds to a day marked as "already have"
-    private func isIngredientFromAlreadyHaveDay(_ ingredientDate: Date, weekPlan: WeekMealPlan) -> Bool {
+    /// Checks if an ingredient date and slot corresponds to a meal slot marked as "already have"
+    private func isIngredientFromAlreadyHaveSlot(_ ingredientDate: Date, slot: String, weekPlan: WeekMealPlan) -> Bool {
         if let days = weekPlan.days as? Set<MealDay> {
             for day in days {
                 if let dayDate = day.date, Calendar.current.isDate(dayDate, inSameDayAs: ingredientDate) {
-                    return day.alreadyHave
+                    switch slot.lowercased() {
+                    case "breakfast": return day.alreadyHaveBreakfast
+                    case "lunch": return day.alreadyHaveLunch
+                    case "dinner": return day.alreadyHaveDinner
+                    case "other": return day.alreadyHaveOther
+                    default: return false
+                    }
                 }
             }
         }
@@ -228,19 +234,19 @@ class ShoppingListManager: ObservableObject {
                     switch originSlot.lowercased() {
                     case "breakfast":
                         if day.breakfast?.name == item.originMeal {
-                            day.alreadyHave = true
+                            day.alreadyHaveBreakfast = true
                         }
                     case "lunch":
                         if day.lunch?.name == item.originMeal {
-                            day.alreadyHave = true
+                            day.alreadyHaveLunch = true
                         }
                     case "dinner":
                         if day.dinner?.name == item.originMeal {
-                            day.alreadyHave = true
+                            day.alreadyHaveDinner = true
                         }
                     case "other":
                         if day.other?.name == item.originMeal {
-                            day.alreadyHave = true
+                            day.alreadyHaveOther = true
                         }
                     default:
                         break

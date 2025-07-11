@@ -30,43 +30,48 @@ struct ShoppingListView: View {
                 .padding(.top)
 
                 List {
-                    // Usual Items Section
-                    if !shoppingListManager.shoppingItems.filter({ $0.originType == "usual" }).isEmpty {
+                    // Usual Items Section (grouped)
+                    let usualGroups = groupItems(shoppingListManager.shoppingItems.filter { $0.originType == "usual" })
+                    if !usualGroups.isEmpty {
                         Section(header: Text("Usual Items").font(.headline)) {
-                            ForEach(shoppingListManager.shoppingItems.filter({ $0.originType == "usual" }), id: \.self) { item in
-                                ShoppingListItemRow(
-                                    item: item,
+                            ForEach(usualGroups, id: \.key) { group in
+                                ShoppingListGroupedRow(
+                                    name: group.key,
+                                    items: group.value,
                                     onToggle: {
-                                        shoppingListManager.toggleItem(item)
+                                        toggleAll(items: group.value)
                                     }
                                 )
                             }
                         }
                     }
 
-                    // Generated Items Section
-                    let generatedItems = shoppingListManager.shoppingItems.filter({ $0.originType != "usual" })
-                    if !generatedItems.isEmpty {
+                    // Generated Items Section (grouped)
+                    let generatedGroups = groupItems(shoppingListManager.shoppingItems.filter { $0.originType != "usual" })
+                    if !generatedGroups.isEmpty {
                         Section(header: Text("Generated Items").font(.headline)) {
-                            ForEach(generatedItems, id: \.self) { item in
-                                ShoppingListItemRow(
-                                    item: item,
+                            ForEach(generatedGroups, id: \.key) { group in
+                                ShoppingListGroupedRow(
+                                    name: group.key,
+                                    items: group.value,
                                     onToggle: {
-                                        shoppingListManager.toggleItem(item)
+                                        toggleAll(items: group.value)
                                     }
                                 )
                             }
                         }
                     }
 
-                    // Ticked Off Items Section
-                    if !shoppingListManager.tickedOffItems.isEmpty {
+                    // Ticked Off Items Section (grouped)
+                    let tickedGroups = groupItems(shoppingListManager.tickedOffItems)
+                    if !tickedGroups.isEmpty {
                         Section(header: Text("Ticked Off").font(.headline)) {
-                            ForEach(shoppingListManager.tickedOffItems, id: \.self) { item in
-                                TickedOffItemRow(
-                                    item: item,
+                            ForEach(tickedGroups, id: \.key) { group in
+                                TickedOffGroupedRow(
+                                    name: group.key,
+                                    items: group.value,
                                     onToggle: {
-                                        shoppingListManager.toggleItem(item)
+                                        toggleAll(items: group.value)
                                     }
                                 )
                             }
@@ -123,6 +128,20 @@ struct ShoppingListView: View {
 
     // MARK: - Private Methods
     
+    /// Groups items by name (case-insensitive)
+    private func groupItems(_ items: [ShoppingListItem]) -> [(key: String, value: [ShoppingListItem])] {
+        let grouped = Dictionary(grouping: items) { ($0.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+        // Sort by name
+        return grouped.sorted { $0.key < $1.key }
+    }
+    
+    /// Toggles all items in a group
+    private func toggleAll(items: [ShoppingListItem]) {
+        for item in items {
+            shoppingListManager.toggleItem(item)
+        }
+    }
+    
     /// Generates the shopping list from the current week plan
     private func generateShoppingList() {
         shoppingListManager.generateShoppingList(
@@ -146,34 +165,29 @@ struct ShoppingListView: View {
     }
 }
 
-// MARK: - Shopping List Item Row
-struct ShoppingListItemRow: View {
-    let item: ShoppingListItem
+// MARK: - Shopping List Grouped Row
+struct ShoppingListGroupedRow: View {
+    let name: String
+    let items: [ShoppingListItem]
     let onToggle: () -> Void
 
     var body: some View {
         HStack {
-            // Checkbox
             Image(systemName: "circle")
                 .foregroundColor(.blue)
                 .font(.caption)
                 .onTapGesture {
                     onToggle()
                 }
-            
-            // Item name
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.name ?? "")
+                Text(displayName)
                     .font(.body)
-                
-                // Show origin information
-                if let originType = item.originType {
-                    Text(originDescription(for: originType, item: item))
+                if let originType = items.first?.originType {
+                    Text(originDescription(for: originType, item: items.first))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
-            
             Spacer()
         }
         .contentShape(Rectangle())
@@ -182,8 +196,14 @@ struct ShoppingListItemRow: View {
         }
     }
     
-    /// Returns a description of the item's origin
-    private func originDescription(for originType: String, item: ShoppingListItem) -> String {
+    private var displayName: String {
+        let base = items.first?.name ?? name.capitalized
+        let count = items.count
+        return count > 1 ? "\(base) x\(count)" : base
+    }
+    
+    private func originDescription(for originType: String, item: ShoppingListItem?) -> String {
+        guard let item = item else { return "" }
         switch originType {
         case "usual":
             return "Usual Item"
@@ -205,9 +225,10 @@ struct ShoppingListItemRow: View {
     }
 }
 
-// MARK: - Ticked Off Item Row
-struct TickedOffItemRow: View {
-    let item: ShoppingListItem
+// MARK: - Ticked Off Grouped Row
+struct TickedOffGroupedRow: View {
+    let name: String
+    let items: [ShoppingListItem]
     let onToggle: () -> Void
 
     var body: some View {
@@ -218,20 +239,16 @@ struct TickedOffItemRow: View {
                 .onTapGesture {
                     onToggle()
                 }
-            
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.name ?? "")
+                Text(displayName)
                     .strikethrough()
                     .foregroundColor(.secondary)
-                
-                // Show origin information
-                if let originType = item.originType {
-                    Text(originDescription(for: originType, item: item))
+                if let originType = items.first?.originType {
+                    Text(originDescription(for: originType, item: items.first))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
-            
             Spacer()
         }
         .contentShape(Rectangle())
@@ -240,8 +257,14 @@ struct TickedOffItemRow: View {
         }
     }
     
-    /// Returns a description of the item's origin
-    private func originDescription(for originType: String, item: ShoppingListItem) -> String {
+    private var displayName: String {
+        let base = items.first?.name ?? name.capitalized
+        let count = items.count
+        return count > 1 ? "\(base) x\(count)" : base
+    }
+    
+    private func originDescription(for originType: String, item: ShoppingListItem?) -> String {
+        guard let item = item else { return "" }
         switch originType {
         case "usual":
             return "Usual Item"

@@ -32,7 +32,10 @@
         <relationship name="otherForDay" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MealDay" inverseName="other" inverseEntity="MealDay"/>
     </entity>
     <entity name="MealDay" representedClassName="MealDay" syncable="YES" codeGenerationType="class">
-        <attribute name="alreadyHave" optional="YES" attributeType="Boolean" usesScalarValueType="YES" defaultValueString="NO"/>
+        <attribute name="alreadyHaveBreakfast" optional="YES" attributeType="Boolean" usesScalarValueType="YES" defaultValueString="NO"/>
+        <attribute name="alreadyHaveDinner" optional="YES" attributeType="Boolean" usesScalarValueType="YES" defaultValueString="NO"/>
+        <attribute name="alreadyHaveLunch" optional="YES" attributeType="Boolean" usesScalarValueType="YES" defaultValueString="NO"/>
+        <attribute name="alreadyHaveOther" optional="YES" attributeType="Boolean" usesScalarValueType="YES" defaultValueString="NO"/>
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="breakfast" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Meal" inverseName="breakfastForDay" inverseEntity="Meal"/>

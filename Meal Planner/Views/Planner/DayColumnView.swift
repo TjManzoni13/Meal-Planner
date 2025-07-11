@@ -35,38 +35,37 @@ struct DayColumnView: View {
             }
             .padding(.bottom, 4)
 
-            // "Already have" checkbox
-            HStack {
-                Button(action: {
-                    weekPlanManager.toggleAlreadyHave(for: day)
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: day.alreadyHave ? "checkmark.square.fill" : "square")
-                            .foregroundColor(day.alreadyHave ? .green : .gray)
-                            .font(.caption)
-                        Text("Already have")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-                Spacer()
-            }
-            .padding(.bottom, 4)
-            .onChange(of: day.alreadyHave) { oldValue, newValue in
-                // Force UI update when alreadyHave changes
-            }
-
-            // Meal slots
+            // Meal slots with individual "already have" checkboxes
             ForEach(mealSlots, id: \.self) { slot in
-                MealSlotView(
-                    slot: slot,
-                    day: day,
-                    meals: meals,
-                    onMealSelected: onMealSelected,
-                    onManualIngredient: onManualIngredient,
-                    selectedTab: $selectedTab // Pass the binding
-                )
+                VStack(alignment: .leading, spacing: 4) {
+                    // "Already have" checkbox for this slot
+                    HStack {
+                        Button(action: {
+                            weekPlanManager.toggleAlreadyHave(for: day, slot: slot)
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: weekPlanManager.getAlreadyHave(for: day, slot: slot) ? "checkmark.square.fill" : "square")
+                                    .foregroundColor(weekPlanManager.getAlreadyHave(for: day, slot: slot) ? .green : .gray)
+                                    .font(.caption)
+                                Text("Already have \(slot)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        Spacer()
+                    }
+                    
+                    // Meal slot view
+                    MealSlotView(
+                        slot: slot,
+                        day: day,
+                        meals: meals,
+                        onMealSelected: onMealSelected,
+                        onManualIngredient: onManualIngredient,
+                        selectedTab: $selectedTab // Pass the binding
+                    )
+                }
             }
         }
         .padding(8)

@@ -130,17 +130,47 @@ class WeekPlanManager: ObservableObject {
         CoreDataManager.shared.delete(day)
     }
     
-    func toggleAlreadyHave(for day: MealDay) {
-        let oldValue = day.alreadyHave
-        day.alreadyHave = !(day.alreadyHave)
-        CoreDataManager.shared.saveContext()
+    // MARK: - Already Have Methods
+    
+    /// Toggles the "already have" state for a specific meal slot
+    func toggleAlreadyHave(for day: MealDay, slot: String) {
+        let oldValue = getAlreadyHave(for: day, slot: slot)
+        setAlreadyHave(!oldValue, for: day, slot: slot)
         
-        print("Toggled alreadyHave for day \(day.date?.description ?? "unknown") from \(oldValue) to \(day.alreadyHave)")
+        print("Toggled alreadyHave for day \(day.date?.description ?? "unknown") slot \(slot) from \(oldValue) to \(!oldValue)")
         
         // Trigger UI update for both planner and shopping list
         DispatchQueue.main.async {
             self.objectWillChange.send()
         }
+    }
+    
+    /// Gets the "already have" state for a specific meal slot
+    func getAlreadyHave(for day: MealDay, slot: String) -> Bool {
+        switch slot.lowercased() {
+        case "breakfast": return day.alreadyHaveBreakfast
+        case "lunch": return day.alreadyHaveLunch
+        case "dinner": return day.alreadyHaveDinner
+        case "other": return day.alreadyHaveOther
+        default: return false
+        }
+    }
+    
+    /// Sets the "already have" state for a specific meal slot
+    func setAlreadyHave(_ value: Bool, for day: MealDay, slot: String) {
+        switch slot.lowercased() {
+        case "breakfast": day.alreadyHaveBreakfast = value
+        case "lunch": day.alreadyHaveLunch = value
+        case "dinner": day.alreadyHaveDinner = value
+        case "other": day.alreadyHaveOther = value
+        default: break
+        }
+        CoreDataManager.shared.saveContext()
+    }
+    
+    /// Checks if a day has any meal slots marked as "already have"
+    func hasAnyAlreadyHave(for day: MealDay) -> Bool {
+        return day.alreadyHaveBreakfast || day.alreadyHaveLunch || day.alreadyHaveDinner || day.alreadyHaveOther
     }
     
     // Clean up old planner data (older than 4 weeks from current week)
