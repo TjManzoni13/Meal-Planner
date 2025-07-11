@@ -37,6 +37,8 @@ class ShoppingListManager: ObservableObject {
         
         // Save to Core Data
         saveShoppingList(to: weekPlan)
+        // Refresh arrays from Core Data to ensure tick/untick works
+        loadShoppingList(from: weekPlan)
     }
     
     // MARK: - Load Shopping List
@@ -70,8 +72,6 @@ class ShoppingListManager: ObservableObject {
     /// Toggles the ticked state of a shopping list item
     func toggleItem(_ item: ShoppingListItem) {
         item.isTicked.toggle()
-        
-        // Update local arrays
         if item.isTicked {
             if let index = shoppingItems.firstIndex(of: item) {
                 shoppingItems.remove(at: index)
@@ -87,8 +87,6 @@ class ShoppingListManager: ObservableObject {
                 shoppingItems.append(item)
             }
         }
-        
-        // Save to Core Data
         CoreDataManager.shared.saveContext()
     }
     
@@ -147,21 +145,17 @@ class ShoppingListManager: ObservableObject {
         if let days = weekPlan.days as? Set<MealDay> {
             for day in days {
                 let dayDate = day.date ?? Date()
-                
-                // Process each meal slot with individual "already have" checks
-                let mealSlots = [
-                    ("breakfast", day.breakfast, day.alreadyHaveBreakfast),
-                    ("lunch", day.lunch, day.alreadyHaveLunch),
-                    ("dinner", day.dinner, day.alreadyHaveDinner),
-                    ("other", day.other, day.alreadyHaveOther)
+                // For each slot, loop over all meals in the set
+                let slotInfo: [(String, NSSet?, Bool)] = [
+                    ("breakfast", day.breakfasts, day.alreadyHaveBreakfast),
+                    ("lunch", day.lunches, day.alreadyHaveLunch),
+                    ("dinner", day.dinners, day.alreadyHaveDinner),
+                    ("other", day.others, day.alreadyHaveOther)
                 ]
-                
-                for (slotName, meal, alreadyHave) in mealSlots {
-                    // Skip if this specific slot is marked as "already have"
+                for (slotName, mealSet, alreadyHave) in slotInfo {
                     if alreadyHave { continue }
-                    
-                    if let meal = meal {
-                        // Add ingredients from assigned meal
+                    let meals = mealSet?.allObjects as? [Meal] ?? []
+                    for meal in meals {
                         if let ingredients = meal.ingredients as? Set<Ingredient> {
                             for ingredient in ingredients {
                                 let item = ShoppingListItem(context: context)
@@ -172,7 +166,6 @@ class ShoppingListManager: ObservableObject {
                                 item.originSlot = slotName
                                 item.originDate = dayDate
                                 item.isTicked = false
-                                
                                 shoppingItems.append(item)
                             }
                         }
@@ -180,7 +173,6 @@ class ShoppingListManager: ObservableObject {
                 }
             }
         }
-        
         // Add manual slot ingredients
         if let slotIngredients = weekPlan.manualSlotIngredients as? Set<ManualSlotIngredient> {
             for ingredient in slotIngredients {
@@ -226,30 +218,39 @@ class ShoppingListManager: ObservableObject {
         guard let weekPlan = item.weekPlan,
               let originDate = item.originDate,
               let originSlot = item.originSlot else { return }
-        
         if let days = weekPlan.days as? Set<MealDay> {
             for day in days {
                 if let dayDate = day.date, Calendar.current.isDate(dayDate, inSameDayAs: originDate) {
-                    // Mark the specific slot as "already have"
+                    // If manual_slot, mark the slot as already have regardless of meal name
+                    if item.originType == "manual_slot" {
+                        switch originSlot.lowercased() {
+                        case "breakfast": day.alreadyHaveBreakfast = true
+                        case "lunch": day.alreadyHaveLunch = true
+                        case "dinner": day.alreadyHaveDinner = true
+                        case "other": day.alreadyHaveOther = true
+                        default: break
+                        }
+                        continue
+                    }
+                    // Mark the specific slot as "already have" if any meal in the slot matches
                     switch originSlot.lowercased() {
                     case "breakfast":
-                        if day.breakfast?.name == item.originMeal {
+                        if let meals = day.breakfasts as? Set<Meal>, meals.contains(where: { $0.name == item.originMeal }) {
                             day.alreadyHaveBreakfast = true
                         }
                     case "lunch":
-                        if day.lunch?.name == item.originMeal {
+                        if let meals = day.lunches as? Set<Meal>, meals.contains(where: { $0.name == item.originMeal }) {
                             day.alreadyHaveLunch = true
                         }
                     case "dinner":
-                        if day.dinner?.name == item.originMeal {
+                        if let meals = day.dinners as? Set<Meal>, meals.contains(where: { $0.name == item.originMeal }) {
                             day.alreadyHaveDinner = true
                         }
                     case "other":
-                        if day.other?.name == item.originMeal {
+                        if let meals = day.others as? Set<Meal>, meals.contains(where: { $0.name == item.originMeal }) {
                             day.alreadyHaveOther = true
                         }
-                    default:
-                        break
+                    default: break
                     }
                 }
             }
@@ -264,15 +265,23 @@ class ShoppingListManager: ObservableObject {
         CoreDataManager.shared.saveContext()
     }
     
-    /// Clears generated items but keeps ticked off items
+    /// Clears generated items but keeps ticked off items and unticked manual items
     private func clearGeneratedItems() {
-        // Remove items from Core Data that are not ticked off
+        // Remove items from Core Data that are not ticked off and not manual
         for item in shoppingItems {
-            if !item.isTicked {
+            if !item.isTicked && item.originType != "manual" {
                 context.delete(item)
             }
         }
-        shoppingItems.removeAll()
+        // Keep unticked manual items in shoppingItems, and move any ticked items to tickedOffItems
+        let untickedManuals = shoppingItems.filter { $0.originType == "manual" && !$0.isTicked }
+        let tickedManuals = shoppingItems.filter { $0.originType == "manual" && $0.isTicked }
+        shoppingItems = untickedManuals
+        for item in tickedManuals {
+            if !tickedOffItems.contains(item) {
+                tickedOffItems.append(item)
+            }
+        }
     }
     
     /// Clears all items

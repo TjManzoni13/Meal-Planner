@@ -12,6 +12,13 @@ struct MealsAndUsualsView: View {
     @State private var selectedTagFilter = "All"
     @State private var showingMealDetail = false
     @State private var selectedMeal: Meal?
+    
+    // Focus states for keyboard management
+    @FocusState private var isUsualItemFocused: Bool
+    @FocusState private var isMealNameFocused: Bool
+    @FocusState private var isMealTagsFocused: Bool
+    @FocusState private var isMealIngredientsFocused: Bool
+    @FocusState private var isMealRecipeFocused: Bool
 
     let availableTags = ["All", "Breakfast", "Lunch", "Dinner", "Multiple"]
 
@@ -53,6 +60,11 @@ struct MealsAndUsualsView: View {
                         HStack {
                             TextField("Add usual item", text: $newUsualItem)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .focused($isUsualItemFocused)
+                                .submitLabel(.done)
+                                .onSubmit {
+                                    addUsualItem()
+                                }
                             
                             Button("Add") {
                                 addUsualItem()
@@ -67,12 +79,27 @@ struct MealsAndUsualsView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             TextField("Meal Name", text: $newMealName)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .focused($isMealNameFocused)
+                                .submitLabel(.next)
+                                .onSubmit {
+                                    isMealTagsFocused = true
+                                }
                             
                             TextField("Tags (comma separated: Breakfast, Lunch, Dinner, Multiple)", text: $newMealTags)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .focused($isMealTagsFocused)
+                                .submitLabel(.next)
+                                .onSubmit {
+                                    isMealIngredientsFocused = true
+                                }
                             
                             TextField("Ingredients (comma separated)", text: $newMealIngredients)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .focused($isMealIngredientsFocused)
+                                .submitLabel(.next)
+                                .onSubmit {
+                                    isMealRecipeFocused = true
+                                }
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Recipe (optional)")
@@ -84,6 +111,7 @@ struct MealsAndUsualsView: View {
                                     .padding(4)
                                     .background(Color.gray.opacity(0.1))
                                     .cornerRadius(8)
+                                    .focused($isMealRecipeFocused)
                             }
 
                             Button("Save Meal") {
@@ -121,6 +149,14 @@ struct MealsAndUsualsView: View {
                     MealDetailView(meal: meal)
                 }
             }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        dismissAllKeyboards()
+                    }
+                }
+            }
             .onAppear {
                 householdManager.loadOrCreateHousehold()
             }
@@ -142,27 +178,41 @@ struct MealsAndUsualsView: View {
             }
         }
     }
+    
+    private func dismissAllKeyboards() {
+        isUsualItemFocused = false
+        isMealNameFocused = false
+        isMealTagsFocused = false
+        isMealIngredientsFocused = false
+        isMealRecipeFocused = false
+    }
 
     private func addUsualItem() {
-        guard let household = householdManager.household, !newUsualItem.isEmpty else { return }
+        let trimmed = newUsualItem.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let household = householdManager.household, !trimmed.isEmpty else { print("addUsualItem: empty or no household"); return }
+        print("addUsualItem: Adding usual item '", trimmed, "'")
         let item = UsualItem(context: CoreDataManager.shared.context)
         item.id = UUID()
-        item.name = newUsualItem.trimmingCharacters(in: .whitespacesAndNewlines)
+        item.name = trimmed
         item.household = household
         CoreDataManager.shared.saveContext()
         newUsualItem = ""
+        isUsualItemFocused = false
     }
 
     private func saveMeal() {
-        guard let household = householdManager.household, !newMealName.isEmpty else { return }
+        print("saveMeal: Called")
+        guard let household = householdManager.household, !newMealName.isEmpty else { print("saveMeal: empty or no household"); return }
         let tagList = newMealTags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         let ingredientList = newMealIngredients.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        print("saveMeal: Adding meal '", newMealName, "' with tags '", tagList, "' and ingredients '", ingredientList, "'")
         mealManager.addMeal(name: newMealName.trimmingCharacters(in: .whitespacesAndNewlines), tags: tagList, recipe: newMealRecipe.trimmingCharacters(in: .whitespacesAndNewlines), ingredients: ingredientList, to: household)
 
         newMealName = ""
         newMealTags = ""
         newMealIngredients = ""
         newMealRecipe = ""
+        dismissAllKeyboards()
     }
 }
 
@@ -202,6 +252,7 @@ struct MealRowView: View {
         }
         .contentShape(Rectangle())
         .onTapGesture {
+            print("MealRowView: Tapped meal '", meal.name ?? "", "'")
             onTap()
         }
     }

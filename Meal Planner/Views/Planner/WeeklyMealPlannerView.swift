@@ -152,11 +152,19 @@ struct WeeklyMealPlannerView: View {
                 householdManager.loadOrCreateHousehold()
                 // Clean up old planner data when the view appears
                 weekPlanManager.cleanupOldPlannerData()
+                if let household = householdManager.household {
+                    mealManager.fetchMeals(for: household)
+                    weekPlanManager.fetchOrCreateWeek(for: selectedWeekStart, household: household)
+                    // Force load days relationship to ensure persistence
+                    _ = weekPlanManager.weekPlan?.days?.allObjects
+                }
             }
             .onChange(of: householdManager.household) { oldValue, newValue in
                 if let household = newValue {
                     mealManager.fetchMeals(for: household)
                     weekPlanManager.fetchOrCreateWeek(for: selectedWeekStart, household: household)
+                    // Force load days relationship to ensure persistence
+                    _ = weekPlanManager.weekPlan?.days?.allObjects
                 }
             }
         }
@@ -166,11 +174,22 @@ struct WeeklyMealPlannerView: View {
 // MARK: - Helpers
 private extension WeeklyMealPlannerView {
     func dayForDate(_ date: Date) -> MealDay {
-        if let existing = weekPlanManager.weekPlan?.days?.compactMap({ $0 as? MealDay }).first(where: { Calendar.current.isDate($0.date ?? Date(), inSameDayAs: date) }) {
+        // Ensure week plan is loaded
+        guard let weekPlan = weekPlanManager.weekPlan else {
+            let newDay = weekPlanManager.createDay(for: date)
+            return newDay
+        }
+        
+        // Look for existing day in the week plan
+        if let existing = weekPlan.days?.compactMap({ $0 as? MealDay }).first(where: { 
+            guard let dayDate = $0.date else { return false }
+            return Calendar.current.isDate(dayDate, inSameDayAs: date) 
+        }) {
             return existing
         } else {
+            // Create new day and add to week plan
             let newDay = weekPlanManager.createDay(for: date)
-            weekPlanManager.weekPlan?.addToDays(newDay)
+            weekPlan.addToDays(newDay)
             CoreDataManager.shared.saveContext()
             return newDay
         }

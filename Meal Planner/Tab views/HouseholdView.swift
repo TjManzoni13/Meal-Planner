@@ -174,6 +174,10 @@ struct AddMemberView: View {
     @State private var memberPreferences = ""
     @State private var dietaryRestrictions: [String] = []
     
+    // Focus states for keyboard management
+    @FocusState private var isMemberNameFocused: Bool
+    @FocusState private var isMemberPreferencesFocused: Bool
+    
     let availableRestrictions = ["Vegetarian", "Vegan", "Gluten-Free", "Dairy-Free", "Nut-Free", "None"]
 
     var body: some View {
@@ -182,6 +186,11 @@ struct AddMemberView: View {
                 Section(header: Text("Member Information").font(.headline)) {
                     TextField("Member Name", text: $memberName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .focused($isMemberNameFocused)
+                        .submitLabel(.next)
+                        .onSubmit {
+                            isMemberPreferencesFocused = true
+                        }
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Dietary Preferences")
@@ -193,6 +202,7 @@ struct AddMemberView: View {
                             .padding(4)
                             .background(Color.gray.opacity(0.1))
                             .cornerRadius(8)
+                            .focused($isMemberPreferencesFocused)
                     }
                 }
 
@@ -233,7 +243,22 @@ struct AddMemberView: View {
                     }
                     .disabled(memberName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
+                
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        dismissAllKeyboards()
+                    }
+                }
+            }
+            .onTapGesture {
+                dismissAllKeyboards()
             }
         }
+    }
+    
+    private func dismissAllKeyboards() {
+        isMemberNameFocused = false
+        isMemberPreferencesFocused = false
     }
 }

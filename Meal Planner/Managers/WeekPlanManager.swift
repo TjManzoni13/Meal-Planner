@@ -36,44 +36,46 @@ class WeekPlanManager: ObservableObject {
 
     func addMeal(_ meal: Meal, to day: MealDay, slot: String) {
         switch slot.lowercased() {
-        case "breakfast": day.breakfast = meal
-        case "lunch": day.lunch = meal
-        case "dinner": day.dinner = meal
-        case "other": day.other = meal
+        case "breakfast":
+            day.addToBreakfasts(meal)
+        case "lunch":
+            day.addToLunches(meal)
+        case "dinner":
+            day.addToDinners(meal)
+        case "other":
+            day.addToOthers(meal)
         default: break
         }
         CoreDataManager.shared.saveContext()
-        
-        // Trigger UI update
         DispatchQueue.main.async {
             self.objectWillChange.send()
         }
     }
-    
-    func removeMeal(from day: MealDay, slot: String) {
+
+    func removeMeal(_ meal: Meal, from day: MealDay, slot: String) {
         switch slot.lowercased() {
-        case "breakfast": day.breakfast = nil
-        case "lunch": day.lunch = nil
-        case "dinner": day.dinner = nil
-        case "other": day.other = nil
+        case "breakfast":
+            day.removeFromBreakfasts(meal)
+        case "lunch":
+            day.removeFromLunches(meal)
+        case "dinner":
+            day.removeFromDinners(meal)
+        case "other":
+            day.removeFromOthers(meal)
         default: break
         }
         CoreDataManager.shared.saveContext()
-        
-        // Trigger UI update
         DispatchQueue.main.async {
             self.objectWillChange.send()
         }
     }
-    
+
     func clearAllMeals(from day: MealDay) {
-        day.breakfast = nil
-        day.lunch = nil
-        day.dinner = nil
-        day.other = nil
+        day.breakfasts = NSSet()
+        day.lunches = NSSet()
+        day.dinners = NSSet()
+        day.others = NSSet()
         CoreDataManager.shared.saveContext()
-        
-        // Trigger UI update
         DispatchQueue.main.async {
             self.objectWillChange.send()
         }

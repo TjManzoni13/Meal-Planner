@@ -6,6 +6,7 @@ struct ShoppingListView: View {
     @StateObject private var shoppingListManager = ShoppingListManager()
 
     @State private var newManualItem = ""
+    @FocusState private var isTextFieldFocused: Bool
 
     var body: some View {
         NavigationView {
@@ -30,50 +31,70 @@ struct ShoppingListView: View {
                 .padding(.top)
 
                 List {
-                    // Usual Items Section (grouped)
-                    let usualGroups = groupItems(shoppingListManager.shoppingItems.filter { $0.originType == "usual" })
-                    if !usualGroups.isEmpty {
+                    // Usual Items Section (individual)
+                    let usualItems = shoppingListManager.shoppingItems.filter { $0.originType == "usual" }
+                    if !usualItems.isEmpty {
                         Section(header: Text("Usual Items").font(.headline)) {
-                            ForEach(usualGroups, id: \.key) { group in
-                                ShoppingListGroupedRow(
-                                    name: group.key,
-                                    items: group.value,
-                                    onToggle: {
-                                        toggleAll(items: group.value)
-                                    }
-                                )
+                            ForEach(usualItems, id: \.objectID) { item in
+                                HStack {
+                                    Image(systemName: item.isTicked ? "checkmark.circle.fill" : "circle")
+                                        .foregroundColor(item.isTicked ? .green : .blue)
+                                        .onTapGesture {
+                                            shoppingListManager.toggleItem(item)
+                                        }
+                                    Text(item.name ?? "")
+                                    Spacer()
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    shoppingListManager.toggleItem(item)
+                                }
                             }
                         }
                     }
 
-                    // Generated Items Section (grouped)
-                    let generatedGroups = groupItems(shoppingListManager.shoppingItems.filter { $0.originType != "usual" })
-                    if !generatedGroups.isEmpty {
+                    // Generated Items Section (individual)
+                    let generatedItems = shoppingListManager.shoppingItems.filter { $0.originType != "usual" }
+                    if !generatedItems.isEmpty {
                         Section(header: Text("Generated Items").font(.headline)) {
-                            ForEach(generatedGroups, id: \.key) { group in
-                                ShoppingListGroupedRow(
-                                    name: group.key,
-                                    items: group.value,
-                                    onToggle: {
-                                        toggleAll(items: group.value)
-                                    }
-                                )
+                            ForEach(generatedItems, id: \.objectID) { item in
+                                HStack {
+                                    Image(systemName: item.isTicked ? "checkmark.circle.fill" : "circle")
+                                        .foregroundColor(item.isTicked ? .green : .blue)
+                                        .onTapGesture {
+                                            shoppingListManager.toggleItem(item)
+                                        }
+                                    Text(item.name ?? "")
+                                    Spacer()
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    shoppingListManager.toggleItem(item)
+                                }
                             }
                         }
                     }
 
-                    // Ticked Off Items Section (grouped)
-                    let tickedGroups = groupItems(shoppingListManager.tickedOffItems)
-                    if !tickedGroups.isEmpty {
+                    // Ticked Off Items Section (individual)
+                    let tickedItems = shoppingListManager.tickedOffItems
+                    if !tickedItems.isEmpty {
                         Section(header: Text("Ticked Off").font(.headline)) {
-                            ForEach(tickedGroups, id: \.key) { group in
-                                TickedOffGroupedRow(
-                                    name: group.key,
-                                    items: group.value,
-                                    onToggle: {
-                                        toggleAll(items: group.value)
-                                    }
-                                )
+                            ForEach(tickedItems, id: \.objectID) { item in
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                        .onTapGesture {
+                                            shoppingListManager.toggleItem(item)
+                                        }
+                                    Text(item.name ?? "")
+                                        .strikethrough()
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    shoppingListManager.toggleItem(item)
+                                }
                             }
                         }
                     }
@@ -87,6 +108,11 @@ struct ShoppingListView: View {
                     HStack {
                         TextField("Add item to shopping list", text: $newManualItem)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .focused($isTextFieldFocused)
+                            .submitLabel(.done)
+                            .onSubmit {
+                                addManualItem()
+                            }
                         
                         Button("Add") {
                             addManualItem()
@@ -96,6 +122,14 @@ struct ShoppingListView: View {
                     }
                     .padding(.horizontal)
                     .padding(.bottom, 8)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button("Done") {
+                                isTextFieldFocused = false
+                            }
+                        }
+                    }
                 }
             }
             .navigationTitle("Shopping List")
@@ -108,6 +142,10 @@ struct ShoppingListView: View {
                         .foregroundColor(.red)
                     }
                 }
+            }
+            .onTapGesture {
+                // Dismiss keyboard when tapping outside
+                isTextFieldFocused = false
             }
             .onAppear {
                 householdManager.loadOrCreateHousehold()
@@ -162,6 +200,7 @@ struct ShoppingListView: View {
         
         shoppingListManager.addManualItem(trimmedItem, to: weekPlanManager.weekPlan)
         newManualItem = ""
+        isTextFieldFocused = false // Dismiss keyboard after adding
     }
 }
 

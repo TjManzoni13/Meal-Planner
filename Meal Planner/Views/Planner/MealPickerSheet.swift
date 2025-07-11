@@ -16,6 +16,10 @@ struct MealPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var manualIngredients: String = ""
     @State private var showManualInput: Bool = false
+    
+    // Focus states for keyboard management
+    @FocusState private var isSearchFocused: Bool
+    @FocusState private var isManualIngredientsFocused: Bool
 
     var filteredMeals: [Meal] {
         if search.isEmpty { return meals }
@@ -27,10 +31,15 @@ struct MealPickerSheet: View {
             VStack {
                 TextField("Search meals...", text: $search)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .focused($isSearchFocused)
+                    .submitLabel(.search)
                     .padding()
                 List {
                     ForEach(filteredMeals, id: \.self) { meal in
-                        Button(action: { onSelect(meal) }) {
+                        Button(action: { 
+                            onSelect(meal)
+                            dismiss() // Dismiss after selection
+                        }) {
                             Text(meal.name ?? "")
                         }
                     }
@@ -74,6 +83,7 @@ struct MealPickerSheet: View {
                                     .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                             )
                             .padding(.horizontal)
+                            .focused($isManualIngredientsFocused)
                         
                         Button("Add to Planner") {
                             let ingredients = manualIngredients
@@ -87,7 +97,8 @@ struct MealPickerSheet: View {
                             
                             manualIngredients = ""
                             showManualInput = false
-                            dismiss()
+                            dismissAllKeyboards()
+                            dismiss() // Dismiss after adding manual ingredients
                         }
                         .buttonStyle(.borderedProminent)
                         .disabled(manualIngredients.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -98,12 +109,30 @@ struct MealPickerSheet: View {
             .navigationTitle("Select Meal")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { dismiss() }) {
                         Image(systemName: "xmark")
                     }
                 }
+                
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        dismissAllKeyboards()
+                    }
+                }
             }
         }
+    }
+    
+    private func dismissAllKeyboards() {
+        isSearchFocused = false
+        isManualIngredientsFocused = false
     }
 } 
