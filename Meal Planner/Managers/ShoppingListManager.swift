@@ -71,23 +71,18 @@ class ShoppingListManager: ObservableObject {
     
     /// Toggles the ticked state of a shopping list item
     func toggleItem(_ item: ShoppingListItem) {
+        print("Toggling item: \(item.name ?? "Unnamed") | objectID: \(item.objectID) | isTicked before: \(item.isTicked)")
         item.isTicked.toggle()
-        if item.isTicked {
-            if let index = shoppingItems.firstIndex(of: item) {
-                shoppingItems.remove(at: index)
-            }
-            if !tickedOffItems.contains(item) {
-                tickedOffItems.append(item)
-            }
-        } else {
-            if let index = tickedOffItems.firstIndex(of: item) {
-                tickedOffItems.remove(at: index)
-            }
-            if !shoppingItems.contains(item) {
-                shoppingItems.append(item)
-            }
-        }
+        print("isTicked after: \(item.isTicked)")
         CoreDataManager.shared.saveContext()
+        if let weekPlan = item.weekPlan {
+            print("Reloading shopping list for weekPlan objectID: \(weekPlan.objectID)")
+            loadShoppingList(from: weekPlan)
+            print("shoppingItems after reload: \(shoppingItems.map { $0.objectID })")
+            print("tickedOffItems after reload: \(tickedOffItems.map { $0.objectID })")
+        } else {
+            print("Warning: item.weekPlan is nil!")
+        }
     }
     
     /// Clears all ticked off items and marks corresponding meal slots as "already have"
