@@ -28,5 +28,8 @@ struct MainTabView: View {
                 }
                 .tag(3)
         }
+        // Set the background and text color for the tab view
+        .background(Color.appBackground.ignoresSafeArea())
+        .foregroundColor(Color.mainText)
     }
 }

@@ -31,6 +31,7 @@ struct DayColumnView: View {
                     .font(.headline)
                     .fontWeight(.semibold)
                     .multilineTextAlignment(.center)
+                    .foregroundColor(Color.mainText)
                 Spacer()
             }
             .padding(.bottom, 4)
@@ -69,8 +70,12 @@ struct DayColumnView: View {
             }
         }
         .padding(8)
-        .background(Color.gray.opacity(0.05))
+        .background(Color.appBackground.opacity(0.8)) // Use app background with some opacity
         .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.accent, lineWidth: 2) // Accent border
+        )
     }
 
     // Full day name and UK date: Monday 7th July 2025

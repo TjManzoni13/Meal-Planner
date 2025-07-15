@@ -10,158 +10,187 @@ struct HouseholdView: View {
 
     var body: some View {
         NavigationView {
-            List {
-                // Household Information Section
-                Section(header: Text("Household Information").font(.headline)) {
-                    if let household = householdManager.household {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("Household Name:")
-                                    .fontWeight(.medium)
-                                Spacer()
-                                Text(household.name ?? "My Household")
-                                    .foregroundColor(.secondary)
+            ZStack {
+                Color.appBackground.ignoresSafeArea() // App-wide background
+                List {
+                    // Household Information Section
+                    Section(header: Text("Household Information").font(.headline)) {
+                        if let household = householdManager.household {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("Household Name:")
+                                        .fontWeight(.medium)
+                                    Spacer()
+                                    Text(household.name ?? "My Household")
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                HStack {
+                                    Text("Created:")
+                                        .fontWeight(.medium)
+                                    Spacer()
+                                    Text(household.createdAt?.formatted(date: .abbreviated, time: .omitted) ?? "Unknown")
+                                        .foregroundColor(.secondary)
+                                }
                             }
+                        }
+                    }
+
+                    // Household Members Section
+                    Section(header: Text("Household Members").font(.headline)) {
+                        // Placeholder for household members
+                        HStack {
+                            Image(systemName: "person.2.fill")
+                                .foregroundColor(.blue)
+                                .font(.caption)
                             
+                            Text("Household sharing features coming soon")
+                                .foregroundColor(.secondary)
+                            
+                            Spacer()
+                        }
+                        
+                        Button(action: {
+                            showingAddMember = true
+                        }) {
                             HStack {
-                                Text("Created:")
-                                    .fontWeight(.medium)
+                                Image(systemName: "person.badge.plus")
+                                    .foregroundColor(Color.accent)
+                                
+                                Text("Add Household Member")
+                                    .foregroundColor(Color.mainText)
+                                
                                 Spacer()
-                                Text(household.createdAt?.formatted(date: .abbreviated, time: .omitted) ?? "Unknown")
-                                    .foregroundColor(.secondary)
                             }
                         }
+                        .background(Color.buttonBackground)
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.accent, lineWidth: 2)
+                        )
                     }
-                }
 
-                // Household Members Section
-                Section(header: Text("Household Members").font(.headline)) {
-                    // Placeholder for household members
-                    HStack {
-                        Image(systemName: "person.2.fill")
-                            .foregroundColor(.blue)
-                            .font(.caption)
-                        
-                        Text("Household sharing features coming soon")
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                    }
-                    
-                    Button(action: {
-                        showingAddMember = true
-                    }) {
+                    // App Settings Section
+                    Section(header: Text("App Settings").font(.headline)) {
                         HStack {
-                            Image(systemName: "person.badge.plus")
-                                .foregroundColor(.blue)
+                            Image(systemName: "gear")
+                                .foregroundColor(.gray)
+                                .font(.caption)
                             
-                            Text("Add Household Member")
-                                .foregroundColor(.blue)
+                            Text("Settings and preferences")
+                                .foregroundColor(.secondary)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.gray)
+                                .font(.caption)
+                        }
+                    }
+
+                    // Data Management Section
+                    Section(header: Text("Data Management").font(.headline)) {
+                        Button(action: {
+                            // TODO: Implement data export
+                        }) {
+                            HStack {
+                                Image(systemName: "square.and.arrow.up")
+                                    .foregroundColor(Color.accent)
+                                
+                                Text("Export Data")
+                                    .foregroundColor(Color.mainText)
+                                
+                                Spacer()
+                            }
+                        }
+                        .background(Color.buttonBackground)
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.accent, lineWidth: 2)
+                        )
+                        
+                        Button(action: {
+                            // TODO: Implement data import
+                        }) {
+                            HStack {
+                                Image(systemName: "square.and.arrow.down")
+                                    .foregroundColor(Color.accent)
+                                
+                                Text("Import Data")
+                                    .foregroundColor(Color.mainText)
+                                
+                                Spacer()
+                            }
+                        }
+                        .background(Color.buttonBackground)
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.accent, lineWidth: 2)
+                        )
+                        
+                        Button(action: {
+                            // TODO: Implement reset functionality
+                        }) {
+                            HStack {
+                                Image(systemName: "trash")
+                                    .foregroundColor(Color.accent)
+                                
+                                Text("Reset All Data")
+                                    .foregroundColor(Color.mainText)
+                                
+                                Spacer()
+                            }
+                        }
+                        .background(Color.buttonBackground)
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.accent, lineWidth: 2)
+                        )
+                    }
+
+                    // About Section
+                    Section(header: Text("About").font(.headline)) {
+                        HStack {
+                            Image(systemName: "info.circle")
+                                .foregroundColor(.gray)
+                                .font(.caption)
+                            
+                            Text("Meal Planner v1.0")
+                                .foregroundColor(.secondary)
                             
                             Spacer()
                         }
-                    }
-                }
-
-                // App Settings Section
-                Section(header: Text("App Settings").font(.headline)) {
-                    HStack {
-                        Image(systemName: "gear")
-                            .foregroundColor(.gray)
-                            .font(.caption)
                         
-                        Text("Settings and preferences")
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                        
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.gray)
-                            .font(.caption)
-                    }
-                }
-
-                // Data Management Section
-                Section(header: Text("Data Management").font(.headline)) {
-                    Button(action: {
-                        // TODO: Implement data export
-                    }) {
                         HStack {
-                            Image(systemName: "square.and.arrow.up")
-                                .foregroundColor(.blue)
+                            Image(systemName: "questionmark.circle")
+                                .foregroundColor(.gray)
+                                .font(.caption)
                             
-                            Text("Export Data")
-                                .foregroundColor(.blue)
+                            Text("Help & Support")
+                                .foregroundColor(.secondary)
                             
                             Spacer()
-                        }
-                    }
-                    
-                    Button(action: {
-                        // TODO: Implement data import
-                    }) {
-                        HStack {
-                            Image(systemName: "square.and.arrow.down")
-                                .foregroundColor(.blue)
                             
-                            Text("Import Data")
-                                .foregroundColor(.blue)
-                            
-                            Spacer()
-                        }
-                    }
-                    
-                    Button(action: {
-                        // TODO: Implement reset functionality
-                    }) {
-                        HStack {
-                            Image(systemName: "trash")
-                                .foregroundColor(.red)
-                            
-                            Text("Reset All Data")
-                                .foregroundColor(.red)
-                            
-                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.gray)
+                                .font(.caption)
                         }
                     }
                 }
-
-                // About Section
-                Section(header: Text("About").font(.headline)) {
-                    HStack {
-                        Image(systemName: "info.circle")
-                            .foregroundColor(.gray)
-                            .font(.caption)
-                        
-                        Text("Meal Planner v1.0")
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                    }
-                    
-                    HStack {
-                        Image(systemName: "questionmark.circle")
-                            .foregroundColor(.gray)
-                            .font(.caption)
-                        
-                        Text("Help & Support")
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                        
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.gray)
-                            .font(.caption)
-                    }
+                .listStyle(InsetGroupedListStyle())
+                .scrollContentBackground(.hidden) // Hide default List background
+                .background(Color.appBackground) // Set List background to app color
+                .navigationTitle("Household")
+                .sheet(isPresented: $showingAddMember) {
+                    AddMemberView()
                 }
-            }
-            .listStyle(InsetGroupedListStyle())
-            .navigationTitle("Household")
-            .sheet(isPresented: $showingAddMember) {
-                AddMemberView()
-            }
-            .onAppear {
-                householdManager.loadOrCreateHousehold()
+                .onAppear {
+                    householdManager.loadOrCreateHousehold()
+                }
             }
         }
     }

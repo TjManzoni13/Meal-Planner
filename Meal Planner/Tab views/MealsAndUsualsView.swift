@@ -24,124 +24,131 @@ struct MealsAndUsualsView: View {
 
     var body: some View {
         NavigationView {
-            VStack {
-                // Tag filter picker
-                Picker("Filter by tag", selection: $selectedTagFilter) {
-                    ForEach(availableTags, id: \.self) { tag in
-                        Text(tag).tag(tag)
+            ZStack {
+                Color.appBackground.ignoresSafeArea() // App-wide background
+                VStack {
+                    // Tag filter picker
+                    Picker("Filter by tag", selection: $selectedTagFilter) {
+                        ForEach(availableTags, id: \.self) { tag in
+                            Text(tag).tag(tag)
+                        }
                     }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding(.horizontal)
 
-                List {
-                    // Usual Items Section
-                    Section(header: Text("Usual Items").font(.headline)) {
-                        if let usuals = householdManager.household?.usualItems as? Set<UsualItem> {
-                            ForEach(Array(usuals), id: \.self) { item in
-                                HStack {
-                                    Image(systemName: "list.bullet")
-                                        .foregroundColor(.blue)
+                    List {
+                        // Usual Items Section
+                        Section(header: Text("Usual Items").font(.headline)) {
+                            if let usuals = householdManager.household?.usualItems as? Set<UsualItem> {
+                                ForEach(Array(usuals), id: \.self) { item in
+                                    HStack {
+                                        Image(systemName: "list.bullet")
+                                            .foregroundColor(.blue)
+                                            .font(.caption)
+                                        
+                                        Text(item.name ?? "")
+                                        
+                                        Spacer()
+                                    }
+                                }
+                                .onDelete { indexSet in
+                                    if let index = indexSet.first {
+                                        let item = Array(usuals)[index]
+                                        CoreDataManager.shared.delete(item)
+                                    }
+                                }
+                            }
+
+                            HStack {
+                                TextField("Add usual item", text: $newUsualItem)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .focused($isUsualItemFocused)
+                                    .submitLabel(.done)
+                                    .onSubmit {
+                                        addUsualItem()
+                                    }
+                                
+                                Button("Add") {
+                                    addUsualItem()
+                                }
+                                .disabled(newUsualItem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                .buttonStyle(.borderedProminent)
+                                .tint(Color.buttonBackground)
+                                .foregroundColor(Color.mainText)
+                            }
+                        }
+
+                        // Create Meal Section
+                        Section(header: Text("Create New Meal").font(.headline)) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                TextField("Meal Name", text: $newMealName)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .focused($isMealNameFocused)
+                                    .submitLabel(.next)
+                                    .onSubmit {
+                                        isMealTagsFocused = true
+                                    }
+                                
+                                TextField("Tags (comma separated: Breakfast, Lunch, Dinner, Multiple)", text: $newMealTags)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .focused($isMealTagsFocused)
+                                    .submitLabel(.next)
+                                    .onSubmit {
+                                        isMealIngredientsFocused = true
+                                    }
+                                
+                                TextField("Ingredients (comma separated)", text: $newMealIngredients)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .focused($isMealIngredientsFocused)
+                                    .submitLabel(.next)
+                                    .onSubmit {
+                                        isMealRecipeFocused = true
+                                    }
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Recipe (optional)")
                                         .font(.caption)
+                                        .foregroundColor(.secondary)
                                     
-                                    Text(item.name ?? "")
-                                    
-                                    Spacer()
+                                    TextEditor(text: $newMealRecipe)
+                                        .frame(minHeight: 80)
+                                        .padding(4)
+                                        .background(Color.gray.opacity(0.1))
+                                        .cornerRadius(8)
+                                        .focused($isMealRecipeFocused)
+                                }
+
+                                Button("Save Meal") {
+                                    saveMeal()
+                                }
+                                .disabled(newMealName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                .buttonStyle(.borderedProminent)
+                                .tint(Color.buttonBackground)
+                                .foregroundColor(Color.mainText)
+                                .frame(maxWidth: .infinity)
+                            }
+                        }
+
+                        // Your Meals Section
+                        Section(header: Text("Your Meals").font(.headline)) {
+                            ForEach(filteredMeals, id: \.self) { meal in
+                                MealRowView(meal: meal) {
+                                    selectedMeal = meal
+                                    showingMealDetail = true
                                 }
                             }
                             .onDelete { indexSet in
                                 if let index = indexSet.first {
-                                    let item = Array(usuals)[index]
-                                    CoreDataManager.shared.delete(item)
-                                }
-                            }
-                        }
-
-                        HStack {
-                            TextField("Add usual item", text: $newUsualItem)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .focused($isUsualItemFocused)
-                                .submitLabel(.done)
-                                .onSubmit {
-                                    addUsualItem()
-                                }
-                            
-                            Button("Add") {
-                                addUsualItem()
-                            }
-                            .disabled(newUsualItem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                            .buttonStyle(.borderedProminent)
-                        }
-                    }
-
-                    // Create Meal Section
-                    Section(header: Text("Create New Meal").font(.headline)) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            TextField("Meal Name", text: $newMealName)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .focused($isMealNameFocused)
-                                .submitLabel(.next)
-                                .onSubmit {
-                                    isMealTagsFocused = true
-                                }
-                            
-                            TextField("Tags (comma separated: Breakfast, Lunch, Dinner, Multiple)", text: $newMealTags)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .focused($isMealTagsFocused)
-                                .submitLabel(.next)
-                                .onSubmit {
-                                    isMealIngredientsFocused = true
-                                }
-                            
-                            TextField("Ingredients (comma separated)", text: $newMealIngredients)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .focused($isMealIngredientsFocused)
-                                .submitLabel(.next)
-                                .onSubmit {
-                                    isMealRecipeFocused = true
-                                }
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Recipe (optional)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                
-                                TextEditor(text: $newMealRecipe)
-                                    .frame(minHeight: 80)
-                                    .padding(4)
-                                    .background(Color.gray.opacity(0.1))
-                                    .cornerRadius(8)
-                                    .focused($isMealRecipeFocused)
-                            }
-
-                            Button("Save Meal") {
-                                saveMeal()
-                            }
-                            .disabled(newMealName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                            .buttonStyle(.borderedProminent)
-                            .frame(maxWidth: .infinity)
-                        }
-                    }
-
-                    // Your Meals Section
-                    Section(header: Text("Your Meals").font(.headline)) {
-                        ForEach(filteredMeals, id: \.self) { meal in
-                            MealRowView(meal: meal) {
-                                selectedMeal = meal
-                                showingMealDetail = true
-                            }
-                        }
-                        .onDelete { indexSet in
-                            if let index = indexSet.first {
-                                let meal = filteredMeals[index]
-                                if let household = householdManager.household {
-                                    mealManager.deleteMeal(meal, from: household)
+                                    let meal = filteredMeals[index]
+                                    if let household = householdManager.household {
+                                        mealManager.deleteMeal(meal, from: household)
+                                    }
                                 }
                             }
                         }
                     }
+                    .listStyle(InsetGroupedListStyle())
                 }
-                .listStyle(InsetGroupedListStyle())
             }
             .navigationTitle("Meals & Usuals")
             .sheet(isPresented: $showingMealDetail) {

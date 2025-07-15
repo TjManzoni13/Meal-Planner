@@ -10,145 +10,154 @@ struct ShoppingListView: View {
 
     var body: some View {
         NavigationView {
-            VStack {
-                // Generate Shopping List Button
-                Button(action: {
-                    generateShoppingList()
-                }) {
-                    HStack {
-                        Image(systemName: "cart.badge.plus")
-                            .foregroundColor(.white)
-                        Text("Generate Shopping List")
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(10)
-                }
-                .padding(.horizontal)
-                .padding(.top)
-
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        // Usual Items Section
-                        let usualItems = shoppingListManager.shoppingItems
-                            .filter { $0.originType == "usual" }
-                            .sorted { ($0.name ?? "") < ($1.name ?? "") }
-                        if !usualItems.isEmpty {
-                            Text("Usual Items").font(.headline).padding([.leading, .top])
-                            ForEach(usualItems, id: \.objectID) { item in
-                                HStack {
-                                    Image(systemName: item.isTicked ? "checkmark.circle.fill" : "circle")
-                                        .foregroundColor(item.isTicked ? .green : .blue)
-                                        .onTapGesture {
-                                            print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
-                                            shoppingListManager.toggleItem(item)
-                                        }
-                                    Text(item.name ?? "")
-                                        .font(.title3)
-                                    Spacer()
-                                }
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
-                                    shoppingListManager.toggleItem(item)
-                                }
-                                .padding(.horizontal)
-                                .padding(.vertical, 8)
-                                Divider()
-                            }
+            ZStack {
+                Color.appBackground.ignoresSafeArea() // App-wide background
+                VStack {
+                    // Generate Shopping List Button
+                    Button(action: {
+                        generateShoppingList()
+                    }) {
+                        HStack {
+                            Image(systemName: "cart.badge.plus")
+                                .foregroundColor(Color.mainText)
+                            Text("Generate Shopping List")
+                                .fontWeight(.medium)
+                                .foregroundColor(Color.mainText)
                         }
-
-                        // Generated Items Section
-                        let generatedItems = shoppingListManager.shoppingItems
-                            .filter { $0.originType != "usual" }
-                            .sorted { ($0.name ?? "") < ($1.name ?? "") }
-                        if !generatedItems.isEmpty {
-                            Text("Generated Items").font(.headline).padding([.leading, .top])
-                            ForEach(generatedItems, id: \.objectID) { item in
-                                HStack {
-                                    Image(systemName: item.isTicked ? "checkmark.circle.fill" : "circle")
-                                        .foregroundColor(item.isTicked ? .green : .blue)
-                                        .onTapGesture {
-                                            print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
-                                            shoppingListManager.toggleItem(item)
-                                        }
-                                    Text(item.name ?? "")
-                                        .font(.title3)
-                                    Spacer()
-                                }
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
-                                    shoppingListManager.toggleItem(item)
-                                }
-                                .padding(.horizontal)
-                                .padding(.vertical, 8)
-                                Divider()
-                            }
-                        }
-
-                        // Ticked Off Items Section
-                        let tickedItems = shoppingListManager.tickedOffItems
-                            .sorted { ($0.name ?? "") < ($1.name ?? "") }
-                        if !tickedItems.isEmpty {
-                            Text("Ticked Off").font(.headline).padding([.leading, .top])
-                            ForEach(tickedItems, id: \.objectID) { item in
-                                HStack {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.green)
-                                        .onTapGesture {
-                                            print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
-                                            shoppingListManager.toggleItem(item)
-                                        }
-                                    Text(item.name ?? "")
-                                        .font(.title3)
-                                        .strikethrough()
-                                        .foregroundColor(.secondary)
-                                    Spacer()
-                                }
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
-                                    shoppingListManager.toggleItem(item)
-                                }
-                                .padding(.horizontal)
-                                .padding(.vertical, 8)
-                                Divider()
-                            }
-                        }
-                    }
-                }
-                .listStyle(InsetGroupedListStyle())
-
-                // Manual Add Item Section
-                VStack(spacing: 8) {
-                    Divider()
-                    
-                    HStack {
-                        TextField("Add item to shopping list", text: $newManualItem)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .focused($isTextFieldFocused)
-                            .submitLabel(.done)
-                            .onSubmit {
-                                addManualItem()
-                            }
-                        
-                        Button("Add") {
-                            addManualItem()
-                        }
-                        .disabled(newManualItem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                        .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.buttonBackground)
+                        .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.accent, lineWidth: 2) // Accent border
+                        )
                     }
                     .padding(.horizontal)
-                    .padding(.bottom, 8)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            Spacer()
-                            Button("Done") {
-                                isTextFieldFocused = false
+                    .padding(.top)
+
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 0) {
+                            // Usual Items Section
+                            let usualItems = shoppingListManager.shoppingItems
+                                .filter { $0.originType == "usual" }
+                                .sorted { ($0.name ?? "") < ($1.name ?? "") }
+                            if !usualItems.isEmpty {
+                                Text("Usual Items").font(.headline).padding([.leading, .top])
+                                ForEach(usualItems, id: \.objectID) { item in
+                                    HStack {
+                                        Image(systemName: item.isTicked ? "checkmark.circle.fill" : "circle")
+                                            .foregroundColor(item.isTicked ? .green : .blue)
+                                            .onTapGesture {
+                                                print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
+                                                shoppingListManager.toggleItem(item)
+                                            }
+                                        Text(item.name ?? "")
+                                            .font(.title3)
+                                        Spacer()
+                                    }
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
+                                        shoppingListManager.toggleItem(item)
+                                    }
+                                    .padding(.horizontal)
+                                    .padding(.vertical, 8)
+                                    Divider()
+                                }
+                            }
+
+                            // Generated Items Section
+                            let generatedItems = shoppingListManager.shoppingItems
+                                .filter { $0.originType != "usual" }
+                                .sorted { ($0.name ?? "") < ($1.name ?? "") }
+                            if !generatedItems.isEmpty {
+                                Text("Generated Items").font(.headline).padding([.leading, .top])
+                                ForEach(generatedItems, id: \.objectID) { item in
+                                    HStack {
+                                        Image(systemName: item.isTicked ? "checkmark.circle.fill" : "circle")
+                                            .foregroundColor(item.isTicked ? .green : .blue)
+                                            .onTapGesture {
+                                                print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
+                                                shoppingListManager.toggleItem(item)
+                                            }
+                                        Text(item.name ?? "")
+                                            .font(.title3)
+                                        Spacer()
+                                    }
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
+                                        shoppingListManager.toggleItem(item)
+                                    }
+                                    .padding(.horizontal)
+                                    .padding(.vertical, 8)
+                                    Divider()
+                                }
+                            }
+
+                            // Ticked Off Items Section
+                            let tickedItems = shoppingListManager.tickedOffItems
+                                .sorted { ($0.name ?? "") < ($1.name ?? "") }
+                            if !tickedItems.isEmpty {
+                                Text("Ticked Off").font(.headline).padding([.leading, .top])
+                                ForEach(tickedItems, id: \.objectID) { item in
+                                    HStack {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.green)
+                                            .onTapGesture {
+                                                print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
+                                                shoppingListManager.toggleItem(item)
+                                            }
+                                        Text(item.name ?? "")
+                                            .font(.title3)
+                                            .strikethrough()
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                    }
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
+                                        shoppingListManager.toggleItem(item)
+                                    }
+                                    .padding(.horizontal)
+                                    .padding(.vertical, 8)
+                                    Divider()
+                                }
+                            }
+                        }
+                    }
+                    .listStyle(InsetGroupedListStyle())
+
+                    // Manual Add Item Section
+                    VStack(spacing: 8) {
+                        Divider()
+                        
+                        HStack {
+                            TextField("Add item to shopping list", text: $newManualItem)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .focused($isTextFieldFocused)
+                                .submitLabel(.done)
+                                .onSubmit {
+                                    addManualItem()
+                                }
+                            
+                            Button("Add") {
+                                addManualItem()
+                            }
+                            .disabled(newManualItem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            .buttonStyle(.borderedProminent)
+                            .tint(Color.buttonBackground)
+                            .foregroundColor(Color.mainText)
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+                        .toolbar {
+                            ToolbarItemGroup(placement: .keyboard) {
+                                Spacer()
+                                Button("Done") {
+                                    isTextFieldFocused = false
+                                }
                             }
                         }
                     }
@@ -161,7 +170,13 @@ struct ShoppingListView: View {
                         Button("Clear Ticked Off") {
                             shoppingListManager.clearTickedOffItems()
                         }
-                        .foregroundColor(.red)
+                        .foregroundColor(Color.mainText)
+                        .background(Color.buttonBackground)
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.accent, lineWidth: 2)
+                        )
                     }
                 }
             }

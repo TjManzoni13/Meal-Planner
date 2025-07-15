@@ -25,23 +25,23 @@ struct MealSlotView: View {
             Text(slot)
                 .font(.subheadline)
                 .fontWeight(.medium)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color.accent) // Use accent for slot title
 
             // Show manual slot ingredients for this day/slot
             ForEach(weekPlanManager.fetchManualSlotIngredients(for: slot, date: day.date ?? Date()), id: \.id) { ing in
                 if let name = ing.name {
                     HStack {
                         Image(systemName: "pencil")
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color.accent)
                         Text(name)
                             .font(.caption)
-                            .foregroundColor(.primary)
+                            .foregroundColor(Color.mainText)
                         Spacer()
                         Button(action: {
                             weekPlanManager.deleteManualSlotIngredient(ing)
                         }) {
                             Image(systemName: "trash")
-                                .foregroundColor(.red)
+                                .foregroundColor(Color.accent)
                                 .font(.caption)
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -91,14 +91,19 @@ struct MealSlotView: View {
                 HStack {
                     Image(systemName: "plus.circle")
                         .font(.caption)
+                        .foregroundColor(Color.accent)
                     Text("Add meal")
                         .font(.caption)
+                        .foregroundColor(Color.mainText)
                 }
-                .foregroundColor(.blue)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(6)
-                .background(Color.blue.opacity(0.1))
+                .background(Color.buttonBackground)
                 .cornerRadius(4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color.accent, lineWidth: 2)
+                )
             }
             .sheet(isPresented: $showingMealPicker) {
                 MealPickerSheet(

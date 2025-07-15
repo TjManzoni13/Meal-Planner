@@ -22,130 +22,133 @@ struct WeeklyMealPlannerView: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                ViewModeToggle(isDayView: $isDayView)
-                Text("Week")
-                    .font(.headline)
-                    .padding(.top, 4)
-                WeekNavigation(
-                    selectedWeekStart: $selectedWeekStart,
-                    onWeekChange: { newStart in
-                        selectedWeekStart = newStart
-                        selectedDayIndex = 0
-                        if let household = householdManager.household {
-                            weekPlanManager.fetchOrCreateWeek(for: newStart, household: household)
-                        }
-                    },
-                    weekRangeText: weekRangeTextUK(for: selectedWeekStart)
-                )
-                if isDayView {
-                    VStack(spacing: 8) {
-                        DaySelectorView(selectedDayIndex: $selectedDayIndex, days: days)
-                            .padding(.bottom, 4)
-                        
-                        // Current Day Button
-                        Button(action: {
-                            let currentDate = Date()
-                            let currentWeekStart = Calendar.current.startOfWeek(for: currentDate)
-                            let currentDayIndex = Calendar.current.component(.weekday, from: currentDate) - 2 // Monday = 0
-                            
-                            selectedWeekStart = currentWeekStart
-                            selectedDayIndex = currentDayIndex
-                            
-                            if let household = householdManager.household {
-                                weekPlanManager.fetchOrCreateWeek(for: currentWeekStart, household: household)
-                            }
-                        }) {
-                            HStack {
-                                Image(systemName: "calendar")
-                                Text("Today")
-                            }
-                            .font(.caption)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.blue)
-                            .cornerRadius(8)
-                        }
-                    }
-                    
-                    let date = Calendar.current.date(byAdding: .day, value: selectedDayIndex, to: selectedWeekStart) ?? selectedWeekStart
-                    let mealDay = dayForDate(date)
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 12) {
-                            DayColumnView(
-                                date: date,
-                                mealSlots: mealSlots,
-                                meals: mealManager.meals,
-                                day: mealDay,
-                                onMealSelected: { meal, slot in
-                                    weekPlanManager.addMeal(meal, to: mealDay, slot: slot)
-                                },
-                                onManualIngredient: { ingredient in
-                                    weekPlanManager.addManualIngredient(ingredient)
-                                },
-                                selectedTab: $selectedTab // Pass the binding
-                            )
-                            .environmentObject(weekPlanManager)
-                            .padding()
-                        }
-                    }
-                } else {
-                    VStack(spacing: 8) {
-                        // Current Week Button
-                        Button(action: {
-                            let currentDate = Date()
-                            let currentWeekStart = Calendar.current.startOfWeek(for: currentDate)
-                            
-                            selectedWeekStart = currentWeekStart
+            ZStack {
+                Color.appBackground.ignoresSafeArea() // App-wide background
+                VStack(spacing: 0) {
+                    ViewModeToggle(isDayView: $isDayView)
+                    Text("Week")
+                        .font(.headline)
+                        .padding(.top, 4)
+                    WeekNavigation(
+                        selectedWeekStart: $selectedWeekStart,
+                        onWeekChange: { newStart in
+                            selectedWeekStart = newStart
                             selectedDayIndex = 0
-                            
                             if let household = householdManager.household {
-                                weekPlanManager.fetchOrCreateWeek(for: currentWeekStart, household: household)
+                                weekPlanManager.fetchOrCreateWeek(for: newStart, household: household)
                             }
-                        }) {
-                            HStack {
-                                Image(systemName: "calendar.badge.clock")
-                                Text("This Week")
-                            }
-                            .font(.caption)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.blue)
-                            .cornerRadius(8)
-                        }
-                        .padding(.bottom, 4)
-                        
-                        ScrollView {
-                            VStack(spacing: 16) {
-                                ForEach(0..<7, id: \.self) { index in
-                                    let date = Calendar.current.date(byAdding: .day, value: index, to: selectedWeekStart) ?? selectedWeekStart
-                                    let mealDay = dayForDate(date)
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        DayColumnView(
-                                            date: date,
-                                            mealSlots: mealSlots,
-                                            meals: mealManager.meals,
-                                            day: mealDay,
-                                            onMealSelected: { meal, slot in
-                                                weekPlanManager.addMeal(meal, to: mealDay, slot: slot)
-                                            },
-                                            onManualIngredient: { ingredient in
-                                                weekPlanManager.addManualIngredient(ingredient)
-                                            },
-                                            selectedTab: $selectedTab // Pass the binding
-                                        )
-                                        .environmentObject(weekPlanManager)
-                                    }
-                                    .padding(.horizontal)
+                        },
+                        weekRangeText: weekRangeTextUK(for: selectedWeekStart)
+                    )
+                    if isDayView {
+                        VStack(spacing: 8) {
+                            DaySelectorView(selectedDayIndex: $selectedDayIndex, days: days)
+                                .padding(.bottom, 4)
+                            
+                            // Current Day Button
+                            Button(action: {
+                                let currentDate = Date()
+                                let currentWeekStart = Calendar.current.startOfWeek(for: currentDate)
+                                let currentDayIndex = Calendar.current.component(.weekday, from: currentDate) - 2 // Monday = 0
+                                
+                                selectedWeekStart = currentWeekStart
+                                selectedDayIndex = currentDayIndex
+                                
+                                if let household = householdManager.household {
+                                    weekPlanManager.fetchOrCreateWeek(for: currentWeekStart, household: household)
                                 }
+                            }) {
+                                HStack {
+                                    Image(systemName: "calendar")
+                                    Text("Today")
+                                }
+                                .font(.caption)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.blue)
+                                .cornerRadius(8)
                             }
-                            .padding(.vertical)
+                        }
+                        
+                        let date = Calendar.current.date(byAdding: .day, value: selectedDayIndex, to: selectedWeekStart) ?? selectedWeekStart
+                        let mealDay = dayForDate(date)
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 12) {
+                                DayColumnView(
+                                    date: date,
+                                    mealSlots: mealSlots,
+                                    meals: mealManager.meals,
+                                    day: mealDay,
+                                    onMealSelected: { meal, slot in
+                                        weekPlanManager.addMeal(meal, to: mealDay, slot: slot)
+                                    },
+                                    onManualIngredient: { ingredient in
+                                        weekPlanManager.addManualIngredient(ingredient)
+                                    },
+                                    selectedTab: $selectedTab // Pass the binding
+                                )
+                                .environmentObject(weekPlanManager)
+                                .padding()
+                            }
+                        }
+                    } else {
+                        VStack(spacing: 8) {
+                            // Current Week Button
+                            Button(action: {
+                                let currentDate = Date()
+                                let currentWeekStart = Calendar.current.startOfWeek(for: currentDate)
+                                
+                                selectedWeekStart = currentWeekStart
+                                selectedDayIndex = 0
+                                
+                                if let household = householdManager.household {
+                                    weekPlanManager.fetchOrCreateWeek(for: currentWeekStart, household: household)
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "calendar.badge.clock")
+                                    Text("This Week")
+                                }
+                                .font(.caption)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.blue)
+                                .cornerRadius(8)
+                            }
+                            .padding(.bottom, 4)
+                            
+                            ScrollView {
+                                VStack(spacing: 16) {
+                                    ForEach(0..<7, id: \.self) { index in
+                                        let date = Calendar.current.date(byAdding: .day, value: index, to: selectedWeekStart) ?? selectedWeekStart
+                                        let mealDay = dayForDate(date)
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            DayColumnView(
+                                                date: date,
+                                                mealSlots: mealSlots,
+                                                meals: mealManager.meals,
+                                                day: mealDay,
+                                                onMealSelected: { meal, slot in
+                                                    weekPlanManager.addMeal(meal, to: mealDay, slot: slot)
+                                                },
+                                                onManualIngredient: { ingredient in
+                                                    weekPlanManager.addManualIngredient(ingredient)
+                                                },
+                                                selectedTab: $selectedTab // Pass the binding
+                                            )
+                                            .environmentObject(weekPlanManager)
+                                        }
+                                        .padding(.horizontal)
+                                    }
+                                }
+                                .padding(.vertical)
+                            }
                         }
                     }
+                    Spacer()
                 }
-                Spacer()
             }
             .navigationTitle("Meal Planner")
             .onAppear {
