@@ -27,8 +27,9 @@ struct WeeklyMealPlannerView: View {
                 VStack(spacing: 0) {
                     ViewModeToggle(isDayView: $isDayView)
                         .foregroundColor(.black)
+                        .font(.body) // Larger toggle text
                     Text("Week")
-                        .font(.headline)
+                        .font(.title3) // Larger 'Week' label
                         .padding(.top, 4)
                         .foregroundColor(.black)
                     WeekNavigation(
@@ -67,6 +68,7 @@ struct WeeklyMealPlannerView: View {
                                         .foregroundColor(.black)
                                     Text("Today")
                                         .foregroundColor(.black)
+                                        .font(.callout) // Larger Today button
                                 }
                                 .font(.caption)
                                 .padding(.horizontal, 12)
@@ -162,7 +164,7 @@ struct WeeklyMealPlannerView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("Meal Planner")
-                        .font(.headline)
+                        .font(.title) // Larger navigation title
                         .foregroundColor(.black)
                 }
             }

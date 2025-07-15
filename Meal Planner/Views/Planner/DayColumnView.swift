@@ -40,7 +40,7 @@ struct DayColumnView: View {
             HStack {
                 Spacer()
                 Text(fullDayUKString(for: date))
-                    .font(.headline)
+                    .font(.title3) // Larger date
                     .fontWeight(.semibold)
                     .multilineTextAlignment(.center)
                     .foregroundColor(textColor)
@@ -51,24 +51,6 @@ struct DayColumnView: View {
             // Meal slots with individual "already have" checkboxes
             ForEach(mealSlots, id: \.self) { slot in
                 VStack(alignment: .leading, spacing: 4) {
-                    // "Already have" checkbox for this slot
-                    HStack {
-                        Button(action: {
-                            weekPlanManager.toggleAlreadyHave(for: day, slot: slot)
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: weekPlanManager.getAlreadyHave(for: day, slot: slot) ? "checkmark.square.fill" : "square")
-                                    .foregroundColor(weekPlanManager.getAlreadyHave(for: day, slot: slot) ? .green : .gray)
-                                    .font(.caption)
-                                Text("Already have \(slot)")
-                                    .font(.caption)
-                                    .foregroundColor(textColor)
-                            }
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        Spacer()
-                    }
-                    
                     // Meal slot view
                     MealSlotView(
                         slot: slot,

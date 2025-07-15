@@ -33,10 +33,40 @@ struct MealSlotView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(slot)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(textColor)
+            HStack(alignment: .center, spacing: 8) {
+                Text(slot)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(textColor)
+                Spacer()
+                // Inline 'Ingredients at Home' checkbox with black border
+                Button(action: {
+                    weekPlanManager.toggleAlreadyHave(for: day, slot: slot)
+                }) {
+                    HStack(spacing: 4) {
+                        ZStack {
+                            // Checkbox fill: transparent when unchecked, coral when checked
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(weekPlanManager.getAlreadyHave(for: day, slot: slot) ? Color.buttonBackground : Color.clear)
+                                .frame(width: 18, height: 18)
+                            // Checkmark
+                            if weekPlanManager.getAlreadyHave(for: day, slot: slot) {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.black)
+                                    .font(.system(size: 12, weight: .bold))
+                            }
+                            // Black border
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color.black, lineWidth: 2)
+                                .frame(width: 18, height: 18)
+                        }
+                        Text("Ingredients at Home")
+                            .font(.callout) // Larger label
+                            .foregroundColor(textColor)
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
 
             // Show manual slot ingredients for this day/slot
             ForEach(weekPlanManager.fetchManualSlotIngredients(for: slot, date: day.date ?? Date()), id: \.id) { ing in
@@ -45,7 +75,7 @@ struct MealSlotView: View {
                         Image(systemName: "pencil")
                             .foregroundColor(Color.accent)
                         Text(name)
-                            .font(.caption)
+                            .font(.body) // Larger manual ingredient
                             .foregroundColor(textColor)
                         Spacer()
                         Button(action: {
@@ -65,7 +95,7 @@ struct MealSlotView: View {
             ForEach(getCurrentMeals(), id: \.self) { meal in
                 HStack {
                     Text(meal.name ?? "")
-                        .font(.caption)
+                        .font(.body) // Larger meal name
                         .fontWeight(.medium)
                         .foregroundColor(textColor)
                     Spacer()
@@ -83,19 +113,6 @@ struct MealSlotView: View {
                 .cornerRadius(4)
             }
 
-            // "Have ingredients" checkbox (applies to the whole slot)
-            HStack {
-                Image(systemName: weekPlanManager.getAlreadyHave(for: day, slot: slot) ? "checkmark.square.fill" : "square")
-                    .foregroundColor(weekPlanManager.getAlreadyHave(for: day, slot: slot) ? .green : .gray)
-                    .font(.caption)
-                Text("Have ingredients")
-                    .font(.caption2)
-                    .foregroundColor(textColor)
-            }
-            .onTapGesture {
-                weekPlanManager.toggleAlreadyHave(for: day, slot: slot)
-            }
-
             // Always show the Add meal button
             Button(action: {
                 showingMealPicker = true
@@ -105,7 +122,7 @@ struct MealSlotView: View {
                         .font(.caption)
                         .foregroundColor(Color.accent)
                     Text("Add meal")
-                        .font(.caption)
+                        .font(.callout) // Larger add meal button
                         .foregroundColor(textColor)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

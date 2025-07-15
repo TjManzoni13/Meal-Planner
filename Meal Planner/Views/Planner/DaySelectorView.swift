@@ -18,7 +18,7 @@ struct DaySelectorView: View {
                     selectedDayIndex = idx
                 }) {
                     Text(days[idx])
-                        .font(.system(size: 13, weight: selectedDayIndex == idx ? .bold : .regular))
+                        .font(.body) // Larger day picker text
                         .foregroundColor(.black)
                         .padding(.vertical, 4)
                         .padding(.horizontal, 8)

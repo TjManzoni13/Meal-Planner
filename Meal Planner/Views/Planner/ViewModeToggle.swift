@@ -14,7 +14,7 @@ struct ViewModeToggle: View {
         HStack {
             Button(action: { isDayView = true }) {
                 Text("Day")
-                    .font(.caption)
+                    .font(.body) // Larger toggle text
                     .fontWeight(isDayView ? .bold : .regular)
                     .foregroundColor(.black)
                     .padding(.horizontal, 12)
@@ -25,7 +25,7 @@ struct ViewModeToggle: View {
             
             Button(action: { isDayView = false }) {
                 Text("Week")
-                    .font(.caption)
+                    .font(.body) // Larger toggle text
                     .fontWeight(!isDayView ? .bold : .regular)
                     .foregroundColor(.black)
                     .padding(.horizontal, 12)

@@ -31,5 +31,6 @@ struct MainTabView: View {
         // Set the background and text color for the tab view
         .background(Color.appBackground.ignoresSafeArea())
         .foregroundColor(Color.mainText)
+        .tint(Color.buttonBackground) // Coral color for tab bar icons
     }
 }
