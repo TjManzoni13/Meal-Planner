@@ -30,7 +30,7 @@ struct WeekNavigation: View {
             }) {
                 Image(systemName: "chevron.left")
                     .font(.title2)
-                    .foregroundColor(selectedWeekStart <= earliestAllowedWeek ? .gray : .blue)
+                    .foregroundColor(selectedWeekStart <= earliestAllowedWeek ? .gray : Color.buttonBackground) // Use coral when enabled
             }
             .disabled(selectedWeekStart <= earliestAllowedWeek)
             
@@ -38,6 +38,7 @@ struct WeekNavigation: View {
             Text(weekRangeText)
                 .font(.headline)
                 .fontWeight(.semibold)
+                .foregroundColor(.black) // Black text
             Spacer()
             Button(action: {
                 let newStart = Calendar.current.date(byAdding: .weekOfYear, value: 1, to: selectedWeekStart).map { Calendar.current.startOfWeek(for: $0) } ?? selectedWeekStart
@@ -45,7 +46,7 @@ struct WeekNavigation: View {
             }) {
                 Image(systemName: "chevron.right")
                     .font(.title2)
-                    .foregroundColor(.blue)
+                    .foregroundColor(Color.buttonBackground) // Use coral
             }
         }
         .padding(.horizontal)

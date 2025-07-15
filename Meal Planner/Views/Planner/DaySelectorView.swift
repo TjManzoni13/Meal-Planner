@@ -19,10 +19,10 @@ struct DaySelectorView: View {
                 }) {
                     Text(days[idx])
                         .font(.system(size: 13, weight: selectedDayIndex == idx ? .bold : .regular))
-                        .foregroundColor(selectedDayIndex == idx ? .white : .blue)
+                        .foregroundColor(.black)
                         .padding(.vertical, 4)
                         .padding(.horizontal, 8)
-                        .background(selectedDayIndex == idx ? Color.blue : Color.clear)
+                        .background(selectedDayIndex == idx ? Color.buttonBackground : Color.clear) // Coral when selected
                         .cornerRadius(8)
                 }
             }

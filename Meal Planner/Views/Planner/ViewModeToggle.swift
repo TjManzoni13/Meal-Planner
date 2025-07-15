@@ -16,10 +16,10 @@ struct ViewModeToggle: View {
                 Text("Day")
                     .font(.caption)
                     .fontWeight(isDayView ? .bold : .regular)
-                    .foregroundColor(isDayView ? .white : .blue)
+                    .foregroundColor(.black)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(isDayView ? Color.blue : Color.clear)
+                    .background(isDayView ? Color.buttonBackground : Color.clear) // Coral when selected
                     .cornerRadius(8)
             }
             
@@ -27,10 +27,10 @@ struct ViewModeToggle: View {
                 Text("Week")
                     .font(.caption)
                     .fontWeight(!isDayView ? .bold : .regular)
-                    .foregroundColor(!isDayView ? .white : .blue)
+                    .foregroundColor(.black)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(!isDayView ? Color.blue : Color.clear)
+                    .background(!isDayView ? Color.buttonBackground : Color.clear) // Coral when selected
                     .cornerRadius(8)
             }
         }

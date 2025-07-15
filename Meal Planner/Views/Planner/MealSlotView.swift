@@ -19,13 +19,24 @@ struct MealSlotView: View {
     @State private var showingManualInput = false
     @State private var mealSearch = ""
     @EnvironmentObject var weekPlanManager: WeekPlanManager
+    let textColor: Color // New parameter for text color
+
+    init(slot: String, day: MealDay, meals: [Meal], onMealSelected: @escaping (Meal, String) -> Void, onManualIngredient: @escaping (String) -> Void, selectedTab: Binding<Int>, textColor: Color = .primary) {
+        self.slot = slot
+        self.day = day
+        self.meals = meals
+        self.onMealSelected = onMealSelected
+        self.onManualIngredient = onManualIngredient
+        self._selectedTab = selectedTab
+        self.textColor = textColor
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(slot)
                 .font(.subheadline)
                 .fontWeight(.medium)
-                .foregroundColor(Color.accent) // Use accent for slot title
+                .foregroundColor(textColor)
 
             // Show manual slot ingredients for this day/slot
             ForEach(weekPlanManager.fetchManualSlotIngredients(for: slot, date: day.date ?? Date()), id: \.id) { ing in
@@ -35,7 +46,7 @@ struct MealSlotView: View {
                             .foregroundColor(Color.accent)
                         Text(name)
                             .font(.caption)
-                            .foregroundColor(Color.mainText)
+                            .foregroundColor(textColor)
                         Spacer()
                         Button(action: {
                             weekPlanManager.deleteManualSlotIngredient(ing)
@@ -56,6 +67,7 @@ struct MealSlotView: View {
                     Text(meal.name ?? "")
                         .font(.caption)
                         .fontWeight(.medium)
+                        .foregroundColor(textColor)
                     Spacer()
                     Button(action: {
                         weekPlanManager.removeMeal(meal, from: day, slot: slot)
@@ -78,7 +90,7 @@ struct MealSlotView: View {
                     .font(.caption)
                 Text("Have ingredients")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(textColor)
             }
             .onTapGesture {
                 weekPlanManager.toggleAlreadyHave(for: day, slot: slot)
@@ -94,7 +106,7 @@ struct MealSlotView: View {
                         .foregroundColor(Color.accent)
                     Text("Add meal")
                         .font(.caption)
-                        .foregroundColor(Color.mainText)
+                        .foregroundColor(textColor)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(6)

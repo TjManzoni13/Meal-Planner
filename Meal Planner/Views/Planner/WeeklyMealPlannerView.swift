@@ -26,9 +26,11 @@ struct WeeklyMealPlannerView: View {
                 Color.appBackground.ignoresSafeArea() // App-wide background
                 VStack(spacing: 0) {
                     ViewModeToggle(isDayView: $isDayView)
+                        .foregroundColor(.black)
                     Text("Week")
                         .font(.headline)
                         .padding(.top, 4)
+                        .foregroundColor(.black)
                     WeekNavigation(
                         selectedWeekStart: $selectedWeekStart,
                         onWeekChange: { newStart in
@@ -40,10 +42,12 @@ struct WeeklyMealPlannerView: View {
                         },
                         weekRangeText: weekRangeTextUK(for: selectedWeekStart)
                     )
+                    .foregroundColor(.black)
                     if isDayView {
                         VStack(spacing: 8) {
                             DaySelectorView(selectedDayIndex: $selectedDayIndex, days: days)
                                 .padding(.bottom, 4)
+                                .foregroundColor(.black)
                             
                             // Current Day Button
                             Button(action: {
@@ -60,13 +64,14 @@ struct WeeklyMealPlannerView: View {
                             }) {
                                 HStack {
                                     Image(systemName: "calendar")
+                                        .foregroundColor(.black)
                                     Text("Today")
+                                        .foregroundColor(.black)
                                 }
                                 .font(.caption)
-                                .foregroundColor(.white)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
-                                .background(Color.blue)
+                                .background(Color.buttonBackground) // Coral background
                                 .cornerRadius(8)
                             }
                         }
@@ -86,7 +91,8 @@ struct WeeklyMealPlannerView: View {
                                     onManualIngredient: { ingredient in
                                         weekPlanManager.addManualIngredient(ingredient)
                                     },
-                                    selectedTab: $selectedTab // Pass the binding
+                                    selectedTab: $selectedTab,
+                                    textColor: .black // Pass black text color
                                 )
                                 .environmentObject(weekPlanManager)
                                 .padding()
@@ -136,7 +142,8 @@ struct WeeklyMealPlannerView: View {
                                                 onManualIngredient: { ingredient in
                                                     weekPlanManager.addManualIngredient(ingredient)
                                                 },
-                                                selectedTab: $selectedTab // Pass the binding
+                                                selectedTab: $selectedTab,
+                                                textColor: .black // Pass black text color
                                             )
                                             .environmentObject(weekPlanManager)
                                         }
@@ -151,6 +158,14 @@ struct WeeklyMealPlannerView: View {
                 }
             }
             .navigationTitle("Meal Planner")
+            .navigationBarTitleDisplayMode(.inline) // Ensure title is centered
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Meal Planner")
+                        .font(.headline)
+                        .foregroundColor(.black)
+                }
+            }
             .onAppear {
                 householdManager.loadOrCreateHousehold()
                 // Clean up old planner data when the view appears

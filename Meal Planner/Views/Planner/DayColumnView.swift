@@ -21,6 +21,18 @@ struct DayColumnView: View {
     @State private var showingManualInput = false
     @Binding var selectedTab: Int // Pass this down for tab switching
     @EnvironmentObject var weekPlanManager: WeekPlanManager
+    let textColor: Color // New parameter for text color
+
+    init(date: Date, mealSlots: [String], meals: [Meal], day: MealDay, onMealSelected: @escaping (Meal, String) -> Void, onManualIngredient: @escaping (String) -> Void, selectedTab: Binding<Int>, textColor: Color = .primary) {
+        self.date = date
+        self.mealSlots = mealSlots
+        self.meals = meals
+        self.day = day
+        self.onMealSelected = onMealSelected
+        self.onManualIngredient = onManualIngredient
+        self._selectedTab = selectedTab
+        self.textColor = textColor
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -31,7 +43,7 @@ struct DayColumnView: View {
                     .font(.headline)
                     .fontWeight(.semibold)
                     .multilineTextAlignment(.center)
-                    .foregroundColor(Color.mainText)
+                    .foregroundColor(textColor)
                 Spacer()
             }
             .padding(.bottom, 4)
@@ -50,7 +62,7 @@ struct DayColumnView: View {
                                     .font(.caption)
                                 Text("Already have \(slot)")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(textColor)
                             }
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -64,7 +76,8 @@ struct DayColumnView: View {
                         meals: meals,
                         onMealSelected: onMealSelected,
                         onManualIngredient: onManualIngredient,
-                        selectedTab: $selectedTab // Pass the binding
+                        selectedTab: $selectedTab, // Pass the binding
+                        textColor: textColor // Pass text color
                     )
                 }
             }
