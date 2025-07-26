@@ -9,7 +9,6 @@ struct MealsView: View {
     @State private var newMealIngredients = ""
     @State private var newMealRecipe = ""
     @State private var selectedTagFilter = "All"
-    @State private var showingMealDetail = false
     @State private var selectedMeal: Meal?
     
     // Focus states for keyboard management
@@ -156,8 +155,13 @@ struct MealsView: View {
                                 
                                 ForEach(filteredMeals, id: \.objectID) { meal in
                                     MealRowView(meal: meal) {
+                                        selectedMeal = nil
+                                        // Force resolve Core Data faulting to prevent blank sheet
+                                        _ = meal.name
+                                        _ = meal.tags
+                                        _ = (meal.ingredients as? Set<Ingredient>)?.map { $0.name }
+                                        
                                         selectedMeal = meal
-                                        showingMealDetail = true
                                     }
                                     .padding(.horizontal)
                                     .padding(.vertical, 4)
@@ -173,11 +177,9 @@ struct MealsView: View {
             }
             .navigationTitle("Meals")
             .navigationBarTitleDisplayMode(.inline)
-            .sheet(isPresented: $showingMealDetail) {
-                if let meal = selectedMeal {
-                    MealDetailView(meal: meal)
-                    }
-                }
+            .sheet(item: $selectedMeal) { meal in
+                MealDetailView(meal: meal)
+            }
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
@@ -306,7 +308,8 @@ struct MealDetailView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         if isEditing {
                             // Edit mode
-                            VStack(alignment: .leading, spacing: 12) {
+                            VStack {
+                                VStack(alignment: .leading, spacing: 12) {
                                 Text("Meal Name")
                                     .font(.headline)
                                     .foregroundColor(.black)
@@ -316,6 +319,7 @@ struct MealDetailView: View {
                                     .padding(.vertical, 8)
                                     .background(Color.accent)
                                     .cornerRadius(8)
+                                    .foregroundColor(.black)
                                     .focused($isNameFocused)
                                 
                                 Text("Tags")
@@ -352,28 +356,34 @@ struct MealDetailView: View {
                                     .padding(.vertical, 8)
                                     .background(Color.accent)
                                     .cornerRadius(8)
+                                    .foregroundColor(.black)
                                     .focused($isIngredientsFocused)
                                 
-                                TextEditor(text: $editedRecipe)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .frame(minHeight: 80)
-                                    .background(Color.accent)
-                                    .cornerRadius(8)
-                                    .foregroundColor(.black)
-                                    .focused($isRecipeFocused)
-                                    .overlay(
-                                        Group {
-                                            if editedRecipe.isEmpty {
-                                                Text("Recipe (optional)")
-                                                    .foregroundColor(.gray)
-                                                    .padding(.horizontal, 16)
-                                                    .padding(.vertical, 12)
-                                                    .allowsHitTesting(false)
-                                            }
-                                        },
-                                        alignment: .topLeading
-                                    )
+                                ZStack {
+                                    Color.accent
+                                        .cornerRadius(8)
+                                    TextEditor(text: $editedRecipe)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 8)
+                                        .frame(minHeight: 80)
+                                        .background(Color.clear)
+                                        .foregroundColor(.black)
+                                        .focused($isRecipeFocused)
+                                        .scrollContentBackground(.hidden)
+                                        .overlay(
+                                            Group {
+                                                if editedRecipe.isEmpty {
+                                                    Text("Recipe (optional)")
+                                                        .foregroundColor(.gray)
+                                                        .padding(.horizontal, 16)
+                                                        .padding(.vertical, 12)
+                                                        .allowsHitTesting(false)
+                                                }
+                                            },
+                                            alignment: .topLeading
+                                        )
+                                }
+                                .frame(minHeight: 80)
                                 
                                 HStack {
                                     Button("Cancel") {
@@ -396,12 +406,32 @@ struct MealDetailView: View {
                                     .cornerRadius(8)
                                 }
                             }
+                            
+                            Spacer()
+                            
+                            // Delete Button - pinned to bottom
+                            Button(action: {
+                                deleteMeal()
+                            }) {
+                                HStack {
+                                    Image(systemName: "trash")
+                                        .foregroundColor(.white)
+                                    Text("Delete Meal")
+                                        .foregroundColor(.white)
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.buttonBackground)
+                                .cornerRadius(8)
+                            }
+                        }
                         } else {
                             // View mode
                             VStack(alignment: .leading, spacing: 16) {
                                 Text(meal.name ?? "Unnamed Meal")
-                                    .font(.largeTitle)
-                                    .fontWeight(.bold)
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
                                     .foregroundColor(.black)
 
                                 if let tags = meal.tags, !tags.isEmpty {
@@ -414,7 +444,7 @@ struct MealDetailView: View {
                                         ForEach(tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }, id: \.self) { tag in
                                             HStack {
                                                 Image(systemName: "circle.fill")
-                                                    .foregroundColor(.blue)
+                                                    .foregroundColor(Color.accent)
                                                     .font(.caption)
                                                 
                                                 Text(tag)
@@ -442,7 +472,7 @@ struct MealDetailView: View {
                                     ForEach(Array(ingredients).sorted { ($0.name ?? "") < ($1.name ?? "") }, id: \.self) { ingredient in
                                         HStack {
                                             Image(systemName: "circle.fill")
-                                                .foregroundColor(.blue)
+                                                .foregroundColor(Color.accent)
                                                 .font(.caption)
                                             
                                             Text(ingredient.name ?? "")
@@ -475,24 +505,6 @@ struct MealDetailView: View {
                                         .foregroundColor(.gray)
                                 }
                             }
-                            
-                            // Delete Button
-                            Button(action: {
-                                deleteMeal()
-                            }) {
-                                HStack {
-                                    Image(systemName: "trash")
-                                        .foregroundColor(.white)
-                                    Text("Delete Meal")
-                                        .foregroundColor(.white)
-                                        .fontWeight(.semibold)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.red)
-                                .cornerRadius(8)
-                            }
-                            .padding(.top, 20)
                         }
                         
                         Spacer()
@@ -511,8 +523,13 @@ struct MealDetailView: View {
                     }
                 }
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Done") {
-                        dismiss()
+                    Button(isEditing ? "Cancel" : "Done") {
+                        if isEditing {
+                            isEditing = false
+                            loadMealData()
+                        } else {
+                            dismiss()
+                        }
                     }
                 }
             }
@@ -568,3 +585,5 @@ struct MealDetailView: View {
         dismiss()
     }
 }
+
+
