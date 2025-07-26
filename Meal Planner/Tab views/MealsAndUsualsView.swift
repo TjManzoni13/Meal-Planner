@@ -30,7 +30,9 @@ struct MealsAndUsualsView: View {
                     // Tag filter picker
                     Picker("Filter by tag", selection: $selectedTagFilter) {
                         ForEach(availableTags, id: \.self) { tag in
-                            Text(tag).tag(tag)
+                            Text(tag)
+                                .foregroundColor(.black)
+                                .tag(tag)
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())
@@ -38,7 +40,7 @@ struct MealsAndUsualsView: View {
 
                     List {
                         // Usual Items Section
-                        Section(header: Text("Usual Items").font(.headline)) {
+                        Section(header: Text("Usual Items").font(.headline).foregroundColor(.black)) {
                             if let usuals = householdManager.household?.usualItems as? Set<UsualItem> {
                                 ForEach(Array(usuals), id: \.self) { item in
                                     HStack {
@@ -47,7 +49,8 @@ struct MealsAndUsualsView: View {
                                             .font(.caption)
                                         
                                         Text(item.name ?? "")
-                                        
+                                            .foregroundColor(.black)
+
                                         Spacer()
                                     }
                                 }
@@ -64,59 +67,72 @@ struct MealsAndUsualsView: View {
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .focused($isUsualItemFocused)
                                     .submitLabel(.done)
+                                    .foregroundColor(.black)
+                                    .background(Color.accent)
+                                    .cornerRadius(8)
                                     .onSubmit {
                                         addUsualItem()
                                     }
-                                
                                 Button("Add") {
                                     addUsualItem()
-                                }
+                }
                                 .disabled(newUsualItem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                                 .buttonStyle(.borderedProminent)
                                 .tint(Color.buttonBackground)
-                                .foregroundColor(Color.mainText)
+                                .foregroundColor(.black)
                             }
+                            .listRowBackground(Color.buttonBackground)
                         }
 
                         // Create Meal Section
-                        Section(header: Text("Create New Meal").font(.headline)) {
+                        Section(header: Text("Create New Meal").font(.headline).foregroundColor(.black)) {
                             VStack(alignment: .leading, spacing: 12) {
                                 TextField("Meal Name", text: $newMealName)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .focused($isMealNameFocused)
                                     .submitLabel(.next)
+                                    .foregroundColor(.black)
+                                    .background(Color.accent)
+                                    .cornerRadius(8)
                                     .onSubmit {
                                         isMealTagsFocused = true
-                                    }
-                                
+            }
+
                                 TextField("Tags (comma separated: Breakfast, Lunch, Dinner, Multiple)", text: $newMealTags)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .focused($isMealTagsFocused)
                                     .submitLabel(.next)
+                                    .foregroundColor(.black)
+                                    .background(Color.accent)
+                                    .cornerRadius(8)
                                     .onSubmit {
                                         isMealIngredientsFocused = true
-                                    }
-                                
+    }
+
                                 TextField("Ingredients (comma separated)", text: $newMealIngredients)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .focused($isMealIngredientsFocused)
                                     .submitLabel(.next)
+                        .foregroundColor(.black)
+                                    .background(Color.accent)
+                                    .cornerRadius(8)
                                     .onSubmit {
                                         isMealRecipeFocused = true
                                     }
-                                
+
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Recipe (optional)")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    
+                            .font(.caption)
+                                        .foregroundColor(.black)
+
                                     TextEditor(text: $newMealRecipe)
-                                        .frame(minHeight: 80)
                                         .padding(4)
-                                        .background(Color.gray.opacity(0.1))
+                                        .frame(minHeight: 80)
+                                        .background(Color.accent)
                                         .cornerRadius(8)
+                    .foregroundColor(.black)
                                         .focused($isMealRecipeFocused)
-                                }
+            }
 
                                 Button("Save Meal") {
                                     saveMeal()
@@ -124,19 +140,20 @@ struct MealsAndUsualsView: View {
                                 .disabled(newMealName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                                 .buttonStyle(.borderedProminent)
                                 .tint(Color.buttonBackground)
-                                .foregroundColor(Color.mainText)
+                                .foregroundColor(.black)
                                 .frame(maxWidth: .infinity)
                             }
+                            .listRowBackground(Color.buttonBackground)
                         }
 
                         // Your Meals Section
-                        Section(header: Text("Your Meals").font(.headline)) {
+                        Section(header: Text("Your Meals").font(.headline).foregroundColor(.black)) {
                             ForEach(filteredMeals, id: \.self) { meal in
                                 MealRowView(meal: meal) {
                                     selectedMeal = meal
                                     showingMealDetail = true
-                                }
                             }
+                }
                             .onDelete { indexSet in
                                 if let index = indexSet.first {
                                     let meal = filteredMeals[index]
@@ -146,24 +163,27 @@ struct MealsAndUsualsView: View {
                                 }
                             }
                         }
+                        .listRowBackground(Color.buttonBackground)
                     }
                     .listStyle(InsetGroupedListStyle())
                 }
             }
             .navigationTitle("Meals & Usuals")
+            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingMealDetail) {
                 if let meal = selectedMeal {
                     MealDetailView(meal: meal)
+                    }
                 }
-            }
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") {
                         dismissAllKeyboards()
-                    }
-                }
             }
+                    .foregroundColor(.black)
+    }
+}
             .onAppear {
                 householdManager.loadOrCreateHousehold()
             }
@@ -171,6 +191,10 @@ struct MealsAndUsualsView: View {
                 if let household = newValue {
                     mealManager.fetchMeals(for: household)
                 }
+            }
+            // Tap gesture to dismiss keyboard when tapping outside
+            .onTapGesture {
+                dismissAllKeyboards()
             }
         }
     }
@@ -235,25 +259,26 @@ struct MealRowView: View {
                     Text(meal.name ?? "")
                         .font(.headline)
                         .fontWeight(.medium)
-                    
+                        .foregroundColor(.black)
+                            
                     if let tags = meal.tags, !tags.isEmpty {
                         Text("Tags: \(tags)")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.black)
+                        }
                     }
-                }
                 
-                Spacer()
-                
+                    Spacer()
+
                 Image(systemName: "chevron.right")
                     .foregroundColor(.gray)
                     .font(.caption)
-            }
-            
+                }
+
             if let ingredients = meal.ingredients as? Set<Ingredient>, !ingredients.isEmpty {
                 Text("Ingredients: \(ingredients.map { $0.name ?? "" }.joined(separator: ", "))")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.black)
                     .lineLimit(2)
             }
         }
@@ -279,21 +304,23 @@ struct MealDetailView: View {
                         Text(meal.name ?? "")
                             .font(.largeTitle)
                             .fontWeight(.bold)
-                        
+                            .foregroundColor(.black)
+
                         if let tags = meal.tags, !tags.isEmpty {
                             Text("Tags: \(tags)")
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
+                                .foregroundColor(.black)
                     }
-                    
+                }
+
                     // Ingredients
                     if let ingredients = meal.ingredients as? Set<Ingredient>, !ingredients.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Ingredients")
                                 .font(.headline)
                                 .fontWeight(.semibold)
-                            
+                                .foregroundColor(.black)
+
                             ForEach(Array(ingredients), id: \.self) { ingredient in
                                 HStack {
                                     Image(systemName: "circle.fill")
@@ -301,22 +328,25 @@ struct MealDetailView: View {
                                         .font(.caption)
                                     
                                     Text(ingredient.name ?? "")
-                                    
+                                        .foregroundColor(.black)
+
                                     Spacer()
-                                }
-                            }
-                        }
-                    }
-                    
+            }
+        }
+    }
+}
+
                     // Recipe
                     if let recipe = meal.recipe, !recipe.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Recipe")
                                 .font(.headline)
                                 .fontWeight(.semibold)
-                            
+                                .foregroundColor(.black)
+
                             Text(recipe)
                                 .font(.body)
+                                .foregroundColor(.black)
                         }
                     }
                     
