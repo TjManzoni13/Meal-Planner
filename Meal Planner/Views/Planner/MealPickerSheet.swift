@@ -38,26 +38,26 @@ struct MealPickerSheet: View {
                     .submitLabel(.search)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                List {
-                    ForEach(filteredMeals, id: \.self) { meal in
-                        Button(action: { 
-                            onSelect(meal)
-                            dismiss() // Dismiss after selection
-                        }) {
-                            Text(meal.name ?? "")
-                                .foregroundColor(Color.mainText)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding()
-                                .background(Color.accent)
-                                .cornerRadius(8)
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(filteredMeals, id: \.self) { meal in
+                            Button(action: { 
+                                onSelect(meal)
+                                dismiss() // Dismiss after selection
+                            }) {
+                                Text(meal.name ?? "")
+                                    .foregroundColor(Color.mainText)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding()
+                                    .background(Color.accent)
+                                    .cornerRadius(8)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.horizontal, 8)
                         }
-                        .buttonStyle(PlainButtonStyle())
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                        .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
                     }
+                    .padding(.vertical, 4)
                 }
-                .listStyle(PlainListStyle())
                 .background(Color.appBackground)
                 Button(action: onCreateNew) {
                     HStack {

@@ -35,16 +35,23 @@ class WeekPlanManager: ObservableObject {
     }
 
     func addMeal(_ meal: Meal, to day: MealDay, slot: String) {
+        print("Adding meal '\(meal.name ?? "unknown")' to slot '\(slot)' for date \(day.date ?? Date())")
         switch slot.lowercased() {
         case "breakfast":
             day.addToBreakfasts(meal)
+            print("Added to breakfasts")
         case "lunch":
             day.addToLunches(meal)
+            print("Added to lunches")
         case "dinner":
             day.addToDinners(meal)
+            print("Added to dinners")
         case "other":
             day.addToOthers(meal)
-        default: break
+            print("Added to others")
+        default: 
+            print("Unknown slot: \(slot)")
+            break
         }
         CoreDataManager.shared.saveContext()
         DispatchQueue.main.async {

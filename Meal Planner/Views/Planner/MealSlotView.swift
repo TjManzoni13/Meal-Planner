@@ -82,7 +82,7 @@ struct MealSlotView: View {
                             weekPlanManager.deleteManualSlotIngredient(ing)
                         }) {
                             Image(systemName: "trash")
-                                .foregroundColor(Color.accent)
+                                .foregroundColor(Color.buttonBackground)
                                 .font(.caption)
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -94,23 +94,22 @@ struct MealSlotView: View {
             // Show all meals for this slot
             ForEach(getCurrentMeals(), id: \.self) { meal in
                 HStack {
+                    Image(systemName: "fork.knife")
+                        .foregroundColor(Color.accent)
                     Text(meal.name ?? "")
-                        .font(.body) // Larger meal name
-                        .fontWeight(.medium)
+                        .font(.body) // Match manual ingredients font
                         .foregroundColor(textColor)
                     Spacer()
                     Button(action: {
                         weekPlanManager.removeMeal(meal, from: day, slot: slot)
                     }) {
                         Image(systemName: "trash")
-                            .foregroundColor(.red)
+                            .foregroundColor(Color.buttonBackground)
                             .font(.caption)
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
-                .padding(6)
-                .background(Color.green.opacity(0.1))
-                .cornerRadius(4)
+                .padding(.vertical, 2)
             }
 
             // Always show the Add meal button
@@ -158,12 +157,24 @@ struct MealSlotView: View {
 
     // Return all meals for the slot as an array
     private func getCurrentMeals() -> [Meal] {
+        let result: [Meal]
         switch slot.lowercased() {
-        case "breakfast": return (day.breakfasts as? Set<Meal>)?.sorted { ($0.name ?? "") < ($1.name ?? "") } ?? []
-        case "lunch": return (day.lunches as? Set<Meal>)?.sorted { ($0.name ?? "") < ($1.name ?? "") } ?? []
-        case "dinner": return (day.dinners as? Set<Meal>)?.sorted { ($0.name ?? "") < ($1.name ?? "") } ?? []
-        case "other": return (day.others as? Set<Meal>)?.sorted { ($0.name ?? "") < ($1.name ?? "") } ?? []
-        default: return []
+        case "breakfast": 
+            result = (day.breakfasts as? Set<Meal>)?.sorted { ($0.name ?? "") < ($1.name ?? "") } ?? []
+            print("Breakfast meals for \(slot): \(result.count) meals")
+        case "lunch": 
+            result = (day.lunches as? Set<Meal>)?.sorted { ($0.name ?? "") < ($1.name ?? "") } ?? []
+            print("Lunch meals for \(slot): \(result.count) meals")
+        case "dinner": 
+            result = (day.dinners as? Set<Meal>)?.sorted { ($0.name ?? "") < ($1.name ?? "") } ?? []
+            print("Dinner meals for \(slot): \(result.count) meals")
+        case "other": 
+            result = (day.others as? Set<Meal>)?.sorted { ($0.name ?? "") < ($1.name ?? "") } ?? []
+            print("Other meals for \(slot): \(result.count) meals")
+        default: 
+            result = []
+            print("Unknown slot: \(slot)")
         }
+        return result
     }
 } 
