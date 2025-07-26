@@ -1,12 +1,11 @@
 import SwiftUI
 
-struct MealsAndUsualsView: View {
+struct MealsView: View {
     @StateObject private var householdManager = HouseholdManager()
     @StateObject private var mealManager = MealManager()
 
-    @State private var newUsualItem = ""
     @State private var newMealName = ""
-    @State private var newMealTags = ""
+    @State private var selectedTags: Set<String> = []
     @State private var newMealIngredients = ""
     @State private var newMealRecipe = ""
     @State private var selectedTagFilter = "All"
@@ -14,13 +13,12 @@ struct MealsAndUsualsView: View {
     @State private var selectedMeal: Meal?
     
     // Focus states for keyboard management
-    @FocusState private var isUsualItemFocused: Bool
     @FocusState private var isMealNameFocused: Bool
     @FocusState private var isMealTagsFocused: Bool
     @FocusState private var isMealIngredientsFocused: Bool
     @FocusState private var isMealRecipeFocused: Bool
 
-    let availableTags = ["All", "Breakfast", "Lunch", "Dinner", "Multiple"]
+    let availableTags = ["All", "Breakfast", "Lunch", "Dinner"]
 
     var body: some View {
         NavigationView {
@@ -28,147 +26,152 @@ struct MealsAndUsualsView: View {
                 Color.appBackground.ignoresSafeArea() // App-wide background
                 VStack {
                     // Tag filter picker
-                    Picker("Filter by tag", selection: $selectedTagFilter) {
+                    HStack(spacing: 0) {
                         ForEach(availableTags, id: \.self) { tag in
-                            Text(tag)
-                                .foregroundColor(.black)
-                                .tag(tag)
+                            Button(action: {
+                                selectedTagFilter = tag
+                            }) {
+                                Text(tag)
+                                    .font(.caption)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(selectedTagFilter == tag ? Color.buttonBackground : Color.clear)
+                                    .foregroundColor(selectedTagFilter == tag ? .white : .black)
+                                    .cornerRadius(8)
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
-                    .pickerStyle(SegmentedPickerStyle())
                     .padding(.horizontal)
 
-                    List {
-                        // Usual Items Section
-                        Section(header: Text("Usual Items").font(.headline).foregroundColor(.black)) {
-                            if let usuals = householdManager.household?.usualItems as? Set<UsualItem> {
-                                ForEach(Array(usuals), id: \.self) { item in
-                                    HStack {
-                                        Image(systemName: "list.bullet")
-                                            .foregroundColor(.blue)
-                                            .font(.caption)
-                                        
-                                        Text(item.name ?? "")
-                                            .foregroundColor(.black)
-
-                                        Spacer()
-                                    }
-                                }
-                                .onDelete { indexSet in
-                                    if let index = indexSet.first {
-                                        let item = Array(usuals)[index]
-                                        CoreDataManager.shared.delete(item)
-                                    }
-                                }
-                            }
-
-                            HStack {
-                                TextField("Add usual item", text: $newUsualItem)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .focused($isUsualItemFocused)
-                                    .submitLabel(.done)
-                                    .foregroundColor(.black)
-                                    .background(Color.accent)
-                                    .cornerRadius(8)
-                                    .onSubmit {
-                                        addUsualItem()
-                                    }
-                                Button("Add") {
-                                    addUsualItem()
-                }
-                                .disabled(newUsualItem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                                .buttonStyle(.borderedProminent)
-                                .tint(Color.buttonBackground)
-                                .foregroundColor(.black)
-                            }
-                            .listRowBackground(Color.buttonBackground)
-                        }
-
-                        // Create Meal Section
-                        Section(header: Text("Create New Meal").font(.headline).foregroundColor(.black)) {
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            // Create Meal Section
                             VStack(alignment: .leading, spacing: 12) {
-                                TextField("Meal Name", text: $newMealName)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .focused($isMealNameFocused)
-                                    .submitLabel(.next)
+                                Text("Create New Meal")
+                                    .font(.headline)
                                     .foregroundColor(.black)
-                                    .background(Color.accent)
-                                    .cornerRadius(8)
-                                    .onSubmit {
-                                        isMealTagsFocused = true
-            }
-
-                                TextField("Tags (comma separated: Breakfast, Lunch, Dinner, Multiple)", text: $newMealTags)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .focused($isMealTagsFocused)
-                                    .submitLabel(.next)
-                                    .foregroundColor(.black)
-                                    .background(Color.accent)
-                                    .cornerRadius(8)
-                                    .onSubmit {
-                                        isMealIngredientsFocused = true
-    }
-
-                                TextField("Ingredients (comma separated)", text: $newMealIngredients)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .focused($isMealIngredientsFocused)
-                                    .submitLabel(.next)
-                        .foregroundColor(.black)
-                                    .background(Color.accent)
-                                    .cornerRadius(8)
-                                    .onSubmit {
-                                        isMealRecipeFocused = true
-                                    }
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Recipe (optional)")
-                            .font(.caption)
-                                        .foregroundColor(.black)
-
-                                    TextEditor(text: $newMealRecipe)
-                                        .padding(4)
-                                        .frame(minHeight: 80)
+                                    .padding(.horizontal)
+                                
+                                VStack(alignment: .leading, spacing: 12) {
+                                    TextField("Meal Name", text: $newMealName)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 8)
                                         .background(Color.accent)
                                         .cornerRadius(8)
-                    .foregroundColor(.black)
-                                        .focused($isMealRecipeFocused)
-            }
+                                        .focused($isMealNameFocused)
+                                        .submitLabel(.next)
+                                        .onSubmit {
+                                            isMealTagsFocused = true
+                                        }
 
-                                Button("Save Meal") {
-                                    saveMeal()
-                                }
-                                .disabled(newMealName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                                .buttonStyle(.borderedProminent)
-                                .tint(Color.buttonBackground)
-                                .foregroundColor(.black)
-                                .frame(maxWidth: .infinity)
-                            }
-                            .listRowBackground(Color.buttonBackground)
-                        }
-
-                        // Your Meals Section
-                        Section(header: Text("Your Meals").font(.headline).foregroundColor(.black)) {
-                            ForEach(filteredMeals, id: \.self) { meal in
-                                MealRowView(meal: meal) {
-                                    selectedMeal = meal
-                                    showingMealDetail = true
-                            }
-                }
-                            .onDelete { indexSet in
-                                if let index = indexSet.first {
-                                    let meal = filteredMeals[index]
-                                    if let household = householdManager.household {
-                                        mealManager.deleteMeal(meal, from: household)
+                                    HStack(spacing: 8) {
+                                        ForEach(["Breakfast", "Lunch", "Dinner"], id: \.self) { tag in
+                                            Button(action: {
+                                                if selectedTags.contains(tag) {
+                                                    selectedTags.remove(tag)
+                                                } else {
+                                                    selectedTags.insert(tag)
+                                                }
+                                            }) {
+                                                HStack {
+                                                    Text(tag)
+                                                        .font(.caption)
+                                                    if selectedTags.contains(tag) {
+                                                        Image(systemName: "checkmark")
+                                                            .font(.caption)
+                                                            .foregroundColor(Color.buttonBackground)
+                                                    }
+                                                }
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.horizontal, 12)
+                                                .padding(.vertical, 6)
+                                                .background(Color.accent)
+                                                .foregroundColor(.black)
+                                                .cornerRadius(8)
+                                            }
+                                            .buttonStyle(PlainButtonStyle())
+                                        }
                                     }
+
+                                    TextField("Ingredients (comma separated)", text: $newMealIngredients)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 8)
+                                        .background(Color.accent)
+                                        .cornerRadius(8)
+                                        .focused($isMealIngredientsFocused)
+                                        .submitLabel(.next)
+                                        .onSubmit {
+                                            isMealRecipeFocused = true
+                                        }
+
+                                    ZStack {
+                                        Color.accent
+                                            .cornerRadius(8)
+                                        TextEditor(text: $newMealRecipe)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .frame(minHeight: 80)
+                                            .background(Color.clear)
+                                            .foregroundColor(.black)
+                                            .focused($isMealRecipeFocused)
+                                            .scrollContentBackground(.hidden)
+                                            .overlay(
+                                                Group {
+                                                    if newMealRecipe.isEmpty {
+                                                        Text("Recipe (optional)")
+                                                            .foregroundColor(.gray)
+                                                            .padding(.horizontal, 16)
+                                                            .padding(.vertical, 12)
+                                                            .allowsHitTesting(false)
+                                                    }
+                                                },
+                                                alignment: .topLeading
+                                            )
+                                    }
+                                    .frame(minHeight: 80)
+
+                                    Button("Save Meal") {
+                                        saveMeal()
+                                    }
+                                    .disabled(newMealName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.accent)
+                                    .foregroundColor(.black)
+                                    .cornerRadius(8)
+                                }
+                                .padding()
+                                .background(Color.buttonBackground)
+                                .cornerRadius(8)
+                                .padding(.horizontal)
+                            }
+
+                            // Your Meals Section
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Your Meals")
+                                    .font(.headline)
+                                    .foregroundColor(.black)
+                                    .padding(.horizontal)
+                                
+                                ForEach(filteredMeals, id: \.objectID) { meal in
+                                    MealRowView(meal: meal) {
+                                        selectedMeal = meal
+                                        showingMealDetail = true
+                                    }
+                                    .padding(.horizontal)
+                                    .padding(.vertical, 4)
+                                    .background(Color.buttonBackground)
+                                    .cornerRadius(8)
+                                    .padding(.horizontal)
                                 }
                             }
                         }
-                        .listRowBackground(Color.buttonBackground)
+                        .padding(.vertical)
                     }
-                    .listStyle(InsetGroupedListStyle())
                 }
             }
-            .navigationTitle("Meals & Usuals")
+            .navigationTitle("Meals")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingMealDetail) {
                 if let meal = selectedMeal {
@@ -206,41 +209,29 @@ struct MealsAndUsualsView: View {
             return mealManager.meals.filter { meal in
                 let tags = meal.tags?.lowercased() ?? ""
                 return tags.contains(selectedTagFilter.lowercased())
-            }
+            }.sorted { ($0.name ?? "") < ($1.name ?? "") }
         }
     }
     
     private func dismissAllKeyboards() {
-        isUsualItemFocused = false
         isMealNameFocused = false
         isMealTagsFocused = false
         isMealIngredientsFocused = false
         isMealRecipeFocused = false
     }
 
-    private func addUsualItem() {
-        let trimmed = newUsualItem.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let household = householdManager.household, !trimmed.isEmpty else { print("addUsualItem: empty or no household"); return }
-        print("addUsualItem: Adding usual item '", trimmed, "'")
-        let item = UsualItem(context: CoreDataManager.shared.context)
-        item.id = UUID()
-        item.name = trimmed
-        item.household = household
-        CoreDataManager.shared.saveContext()
-        newUsualItem = ""
-        isUsualItemFocused = false
-    }
+
 
     private func saveMeal() {
         print("saveMeal: Called")
         guard let household = householdManager.household, !newMealName.isEmpty else { print("saveMeal: empty or no household"); return }
-        let tagList = newMealTags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        let tagList = Array(selectedTags)
         let ingredientList = newMealIngredients.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         print("saveMeal: Adding meal '", newMealName, "' with tags '", tagList, "' and ingredients '", ingredientList, "'")
         mealManager.addMeal(name: newMealName.trimmingCharacters(in: .whitespacesAndNewlines), tags: tagList, recipe: newMealRecipe.trimmingCharacters(in: .whitespacesAndNewlines), ingredients: ingredientList, to: household)
 
         newMealName = ""
-        newMealTags = ""
+        selectedTags.removeAll()
         newMealIngredients = ""
         newMealRecipe = ""
         dismissAllKeyboards()
@@ -276,7 +267,7 @@ struct MealRowView: View {
                 }
 
             if let ingredients = meal.ingredients as? Set<Ingredient>, !ingredients.isEmpty {
-                Text("Ingredients: \(ingredients.map { $0.name ?? "" }.joined(separator: ", "))")
+                Text("Ingredients: \(ingredients.map { $0.name ?? "" }.sorted().joined(separator: ", "))")
                     .font(.caption2)
                     .foregroundColor(.black)
                     .lineLimit(2)
@@ -294,75 +285,286 @@ struct MealRowView: View {
 struct MealDetailView: View {
     let meal: Meal
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var mealManager = MealManager()
+    
+    @State private var editedName: String = ""
+    @State private var editedSelectedTags: Set<String> = []
+    @State private var editedIngredients: String = ""
+    @State private var editedRecipe: String = ""
+    @State private var isEditing = false
+    
+    // Focus states for keyboard management
+    @FocusState private var isNameFocused: Bool
+    @FocusState private var isIngredientsFocused: Bool
+    @FocusState private var isRecipeFocused: Bool
 
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    // Meal name and tags
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(meal.name ?? "")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.black)
-
-                        if let tags = meal.tags, !tags.isEmpty {
-                            Text("Tags: \(tags)")
-                                .font(.subheadline)
-                                .foregroundColor(.black)
-                    }
-                }
-
-                    // Ingredients
-                    if let ingredients = meal.ingredients as? Set<Ingredient>, !ingredients.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Ingredients")
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.black)
-
-                            ForEach(Array(ingredients), id: \.self) { ingredient in
+            ZStack {
+                Color.appBackground.ignoresSafeArea()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        if isEditing {
+                            // Edit mode
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Meal Name")
+                                    .font(.headline)
+                                    .foregroundColor(.black)
+                                
+                                TextField("Meal Name", text: $editedName)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(Color.accent)
+                                    .cornerRadius(8)
+                                    .focused($isNameFocused)
+                                
+                                Text("Tags")
+                                    .font(.headline)
+                                    .foregroundColor(.black)
+                                
+                                HStack(spacing: 8) {
+                                    ForEach(["Breakfast", "Lunch", "Dinner"], id: \.self) { tag in
+                                        Button(action: {
+                                            if editedSelectedTags.contains(tag) {
+                                                editedSelectedTags.remove(tag)
+                                            } else {
+                                                editedSelectedTags.insert(tag)
+                                            }
+                                        }) {
+                                            Text(tag)
+                                                .font(.caption)
+                                                .padding(.horizontal, 12)
+                                                .padding(.vertical, 6)
+                                                .background(editedSelectedTags.contains(tag) ? Color.buttonBackground : Color.accent)
+                                                .foregroundColor(editedSelectedTags.contains(tag) ? .white : .black)
+                                                .cornerRadius(8)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                    }
+                                }
+                                
+                                Text("Ingredients")
+                                    .font(.headline)
+                                    .foregroundColor(.black)
+                                
+                                TextField("Ingredients (comma separated)", text: $editedIngredients)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(Color.accent)
+                                    .cornerRadius(8)
+                                    .focused($isIngredientsFocused)
+                                
+                                TextEditor(text: $editedRecipe)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .frame(minHeight: 80)
+                                    .background(Color.accent)
+                                    .cornerRadius(8)
+                                    .foregroundColor(.black)
+                                    .focused($isRecipeFocused)
+                                    .overlay(
+                                        Group {
+                                            if editedRecipe.isEmpty {
+                                                Text("Recipe (optional)")
+                                                    .foregroundColor(.gray)
+                                                    .padding(.horizontal, 16)
+                                                    .padding(.vertical, 12)
+                                                    .allowsHitTesting(false)
+                                            }
+                                        },
+                                        alignment: .topLeading
+                                    )
+                                
                                 HStack {
-                                    Image(systemName: "circle.fill")
-                                        .foregroundColor(.blue)
-                                        .font(.caption)
+                                    Button("Cancel") {
+                                        isEditing = false
+                                        loadMealData()
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.gray)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
                                     
-                                    Text(ingredient.name ?? "")
+                                    Button("Save") {
+                                        saveChanges()
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.buttonBackground)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                                }
+                            }
+                        } else {
+                            // View mode
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text(meal.name ?? "Unnamed Meal")
+                                    .font(.largeTitle)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.black)
+
+                                if let tags = meal.tags, !tags.isEmpty {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Meals:")
+                                            .font(.headline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.black)
+                                        
+                                        ForEach(tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }, id: \.self) { tag in
+                                            HStack {
+                                                Image(systemName: "circle.fill")
+                                                    .foregroundColor(.blue)
+                                                    .font(.caption)
+                                                
+                                                Text(tag)
+                                                    .foregroundColor(.black)
+                                                
+                                                Spacer()
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Text("No meals assigned")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+
+                            // Ingredients
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Ingredients")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.black)
+
+                                if let ingredients = meal.ingredients as? Set<Ingredient>, !ingredients.isEmpty {
+                                    ForEach(Array(ingredients).sorted { ($0.name ?? "") < ($1.name ?? "") }, id: \.self) { ingredient in
+                                        HStack {
+                                            Image(systemName: "circle.fill")
+                                                .foregroundColor(.blue)
+                                                .font(.caption)
+                                            
+                                            Text(ingredient.name ?? "")
+                                                .foregroundColor(.black)
+
+                                            Spacer()
+                                        }
+                                    }
+                                } else {
+                                    Text("No ingredients")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+
+                            // Recipe
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Recipe")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.black)
+
+                                if let recipe = meal.recipe, !recipe.isEmpty {
+                                    Text(recipe)
+                                        .font(.body)
                                         .foregroundColor(.black)
-
-                                    Spacer()
-            }
-        }
-    }
-}
-
-                    // Recipe
-                    if let recipe = meal.recipe, !recipe.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Recipe")
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.black)
-
-                            Text(recipe)
-                                .font(.body)
-                                .foregroundColor(.black)
+                                } else {
+                                    Text("No recipe")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            
+                            // Delete Button
+                            Button(action: {
+                                deleteMeal()
+                            }) {
+                                HStack {
+                                    Image(systemName: "trash")
+                                        .foregroundColor(.white)
+                                    Text("Delete Meal")
+                                        .foregroundColor(.white)
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.red)
+                                .cornerRadius(8)
+                            }
+                            .padding(.top, 20)
                         }
+                        
+                        Spacer()
                     }
-                    
-                    Spacer()
+                    .padding()
                 }
-                .padding()
             }
-            .navigationTitle("Meal Details")
+            .navigationTitle(isEditing ? "Edit Meal" : "Meal Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
+                    if !isEditing {
+                        Button("Edit") {
+                            isEditing = true
+                        }
+                    }
+                }
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button("Done") {
                         dismiss()
                     }
                 }
             }
+            .onAppear {
+                print("MealDetailView: Loading meal '\(meal.name ?? "Unknown")'")
+                loadMealData()
+            }
         }
+    }
+    
+    private func loadMealData() {
+        editedName = meal.name ?? ""
+        editedSelectedTags = Set((meal.tags ?? "").split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) })
+        editedIngredients = (meal.ingredients as? Set<Ingredient>)?.map { $0.name ?? "" }.sorted().joined(separator: ", ") ?? ""
+        editedRecipe = meal.recipe ?? ""
+    }
+    
+    private func saveChanges() {
+        // Delete old ingredients
+        if let ingredients = meal.ingredients as? Set<Ingredient> {
+            for ingredient in ingredients {
+                CoreDataManager.shared.delete(ingredient)
+            }
+        }
+        
+        // Update meal
+        meal.name = editedName
+        meal.tags = Array(editedSelectedTags).joined(separator: ", ")
+        meal.recipe = editedRecipe
+        
+        // Add new ingredients
+        let ingredientNames = editedIngredients.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        for ingredientName in ingredientNames {
+            if !ingredientName.isEmpty {
+                let ingredient = Ingredient(context: CoreDataManager.shared.context)
+                ingredient.id = UUID()
+                ingredient.name = ingredientName
+                ingredient.fromManual = false
+                ingredient.meal = meal
+            }
+        }
+        
+        CoreDataManager.shared.saveContext()
+        isEditing = false
+    }
+    
+    private func deleteMeal() {
+        // Delete the meal from Core Data
+        CoreDataManager.shared.delete(meal)
+        CoreDataManager.shared.saveContext()
+        
+        // Dismiss the detail view
+        dismiss()
     }
 }

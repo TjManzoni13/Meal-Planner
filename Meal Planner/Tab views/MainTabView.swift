@@ -15,8 +15,10 @@ struct MainTabView: View {
                     case 1:
                         ShoppingListView()
                     case 2:
-                        MealsAndUsualsView()
+                        MealsView()
                     case 3:
+                        UsualsView()
+                    case 4:
                         HouseholdView()
                     default:
                         WeeklyMealPlannerView(selectedTab: $selectedTab)
@@ -34,7 +36,7 @@ struct MainTabView: View {
                     )
                     
                     TabButton(
-                        title: "Shop",
+                        title: "List",
                         icon: "cart",
                         isSelected: selectedTab == 1,
                         action: { selectedTab = 1 }
@@ -48,10 +50,17 @@ struct MainTabView: View {
                     )
                     
                     TabButton(
-                        title: "Household",
-                        icon: "person.2.fill",
+                        title: "Usuals",
+                        icon: "list.bullet",
                         isSelected: selectedTab == 3,
                         action: { selectedTab = 3 }
+                    )
+                    
+                    TabButton(
+                        title: "Household",
+                        icon: "person.2.fill",
+                        isSelected: selectedTab == 4,
+                        action: { selectedTab = 4 }
                     )
                 }
                 .background(Color.appBackground)
