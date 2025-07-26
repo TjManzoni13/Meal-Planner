@@ -59,30 +59,7 @@ struct MealPickerSheet: View {
                     .padding(.vertical, 4)
                 }
                 .background(Color.appBackground)
-                Button(action: onCreateNew) {
-                    HStack {
-                        Image(systemName: "plus")
-                        Text("Create New Meal")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.buttonBackground)
-                    .foregroundColor(Color.mainText)
-                    .cornerRadius(8)
-                    .padding(.horizontal)
-                }
-                Button(action: { showManualInput = true }) {
-                    HStack {
-                        Image(systemName: "pencil")
-                        Text("Add Ingredients Manually")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.buttonBackground)
-                    .foregroundColor(Color.mainText)
-                    .cornerRadius(8)
-                    .padding(.horizontal)
-                }
+                
                 if showManualInput {
                     VStack(spacing: 8) {
                         Text("Enter ingredients (one per line):")
@@ -128,6 +105,31 @@ struct MealPickerSheet: View {
                         .padding(.horizontal)
                         .padding(.bottom)
                     }
+                }
+                
+                Button(action: onCreateNew) {
+                    HStack {
+                        Image(systemName: "plus")
+                        Text("Create New Meal")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.buttonBackground)
+                    .foregroundColor(Color.mainText)
+                    .cornerRadius(8)
+                    .padding(.horizontal)
+                }
+                Button(action: { showManualInput.toggle() }) {
+                    HStack {
+                        Image(systemName: "pencil")
+                        Text("Add Ingredients Manually")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.buttonBackground)
+                    .foregroundColor(Color.mainText)
+                    .cornerRadius(8)
+                    .padding(.horizontal)
                 }
             }
             .background(Color.appBackground.ignoresSafeArea())
