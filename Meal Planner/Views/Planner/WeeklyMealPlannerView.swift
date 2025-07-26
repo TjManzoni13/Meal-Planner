@@ -116,13 +116,15 @@ struct WeeklyMealPlannerView: View {
                             }) {
                                 HStack {
                                     Image(systemName: "calendar.badge.clock")
+                                        .foregroundColor(.black)
                                     Text("This Week")
+                                        .foregroundColor(.black)
+                                        .font(.callout) // Larger This Week button
                                 }
                                 .font(.caption)
-                                .foregroundColor(.white)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
-                                .background(Color.blue)
+                                .background(Color.buttonBackground) // Coral background
                                 .cornerRadius(8)
                             }
                             .padding(.bottom, 4)

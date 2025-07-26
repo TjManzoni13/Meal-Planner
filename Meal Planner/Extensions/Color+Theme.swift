@@ -6,8 +6,8 @@ extension Color {
     static let appBackground = Color(hex: "#17A2B8")
     /// The primary button background color (coral)
     static let buttonBackground = Color(hex: "#FF6F61")
-    /// The main text color (white)
-    static let mainText = Color.white
+    /// The main text color (black)
+    static let mainText = Color.black
     /// The accent/highlight color (warm yellow)
     static let accent = Color(hex: "#FFE066")
 }

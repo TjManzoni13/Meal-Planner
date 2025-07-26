@@ -30,10 +30,14 @@ struct MealPickerSheet: View {
         NavigationView {
             VStack {
                 TextField("Search meals...", text: $search)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.accent)
+                    .cornerRadius(8)
                     .focused($isSearchFocused)
                     .submitLabel(.search)
-                    .padding()
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
                 List {
                     ForEach(filteredMeals, id: \.self) { meal in
                         Button(action: { 
@@ -41,9 +45,20 @@ struct MealPickerSheet: View {
                             dismiss() // Dismiss after selection
                         }) {
                             Text(meal.name ?? "")
+                                .foregroundColor(Color.mainText)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                .background(Color.accent)
+                                .cornerRadius(8)
                         }
+                        .buttonStyle(PlainButtonStyle())
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
                     }
                 }
+                .listStyle(PlainListStyle())
+                .background(Color.appBackground)
                 Button(action: onCreateNew) {
                     HStack {
                         Image(systemName: "plus")
@@ -51,8 +66,8 @@ struct MealPickerSheet: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
+                    .background(Color.buttonBackground)
+                    .foregroundColor(Color.mainText)
                     .cornerRadius(8)
                     .padding(.horizontal)
                 }
@@ -63,8 +78,8 @@ struct MealPickerSheet: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.gray.opacity(0.2))
-                    .foregroundColor(.blue)
+                    .background(Color.buttonBackground)
+                    .foregroundColor(Color.mainText)
                     .cornerRadius(8)
                     .padding(.horizontal)
                 }
@@ -72,18 +87,22 @@ struct MealPickerSheet: View {
                     VStack(spacing: 8) {
                         Text("Enter ingredients (one per line):")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Color.mainText)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal)
                         
-                        TextEditor(text: $manualIngredients)
-                            .frame(height: 120)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                            )
-                            .padding(.horizontal)
-                            .focused($isManualIngredientsFocused)
+                        ZStack {
+                            Color.accent
+                                .cornerRadius(8)
+                            TextEditor(text: $manualIngredients)
+                                .frame(height: 120)
+                                .padding(.horizontal)
+                                .focused($isManualIngredientsFocused)
+                                .scrollContentBackground(.hidden)
+                                .background(Color.clear)
+                        }
+                        .frame(height: 120)
+                        .padding(.horizontal)
                         
                         Button("Add to Planner") {
                             let ingredients = manualIngredients
@@ -106,19 +125,26 @@ struct MealPickerSheet: View {
                     }
                 }
             }
+            .background(Color.appBackground.ignoresSafeArea())
+            .foregroundColor(Color.mainText)
             .navigationTitle("Select Meal")
             .navigationBarTitleDisplayMode(.inline)
+            .onTapGesture {
+                dismissAllKeyboards()
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundColor(Color.mainText)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { dismiss() }) {
                         Image(systemName: "xmark")
                     }
+                    .foregroundColor(Color.mainText)
                 }
                 
                 ToolbarItemGroup(placement: .keyboard) {
@@ -126,6 +152,7 @@ struct MealPickerSheet: View {
                     Button("Done") {
                         dismissAllKeyboards()
                     }
+                    .foregroundColor(Color.mainText)
                 }
             }
         }
