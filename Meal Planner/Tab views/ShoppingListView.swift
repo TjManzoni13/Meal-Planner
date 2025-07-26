@@ -135,7 +135,10 @@ struct ShoppingListView: View {
                         
                         HStack {
                             TextField("Add item to shopping list", text: $newManualItem)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(Color.accent)
+                                .cornerRadius(8)
                                 .focused($isTextFieldFocused)
                                 .submitLabel(.done)
                                 .onSubmit {
