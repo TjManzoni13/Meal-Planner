@@ -119,8 +119,13 @@ struct MealPickerSheet: View {
                             dismissAllKeyboards()
                             dismiss() // Dismiss after adding manual ingredients
                         }
-                        .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.buttonBackground)
+                        .foregroundColor(Color.mainText)
+                        .cornerRadius(8)
                         .disabled(manualIngredients.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .padding(.horizontal)
                         .padding(.bottom)
                     }
                 }
