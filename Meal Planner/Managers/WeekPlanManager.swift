@@ -11,8 +11,15 @@ import CoreData
 class WeekPlanManager: ObservableObject {
     @Published var weekPlan: WeekMealPlan?
     
-    // Shared state for selected week that persists across tab switches
+    // Shared state for selected week and day that persists across tab switches
     @Published var selectedWeekStart: Date = Calendar.current.startOfWeek(for: Date())
+    @Published var selectedDayIndex: Int = {
+        // Calculate the correct day index for Monday-based week
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: Date())
+        // Convert Sunday=1, Monday=2, ..., Saturday=7 to Monday=0, Tuesday=1, ..., Sunday=6
+        return (weekday + 5) % 7
+    }()
 
     private let context = CoreDataManager.shared.context
 

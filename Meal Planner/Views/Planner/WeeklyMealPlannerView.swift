@@ -13,14 +13,7 @@ struct WeeklyMealPlannerView: View {
     @StateObject private var mealManager = MealManager()
     @EnvironmentObject var weekPlanManager: WeekPlanManager
 
-    // Use shared state from WeekPlanManager for selected week
-    @State private var selectedDayIndex: Int = {
-        // Calculate the correct day index for Monday-based week
-        let calendar = Calendar.current
-        let weekday = calendar.component(.weekday, from: Date())
-        // Convert Sunday=1, Monday=2, ..., Saturday=7 to Monday=0, Tuesday=1, ..., Sunday=6
-        return (weekday + 5) % 7
-    }()
+    // Use shared state from WeekPlanManager for selected week and day
     @State private var isDayView: Bool = true
     @State private var showingPrintView = false
 
@@ -42,7 +35,7 @@ struct WeeklyMealPlannerView: View {
                     WeekNavigation(
                         selectedWeekStart: $weekPlanManager.selectedWeekStart,
                         onWeekChange: { newStart in
-                            selectedDayIndex = 0
+                            weekPlanManager.selectedDayIndex = 0
                             if let household = householdManager.household {
                                 weekPlanManager.updateSelectedWeek(newStart, household: household)
                             }
@@ -52,7 +45,7 @@ struct WeeklyMealPlannerView: View {
                     .foregroundColor(.black)
                     if isDayView {
                         VStack(spacing: 8) {
-                            DaySelectorView(selectedDayIndex: $selectedDayIndex, days: days)
+                            DaySelectorView(selectedDayIndex: $weekPlanManager.selectedDayIndex, days: days)
                                 .padding(.bottom, 4)
                                 .foregroundColor(.black)
                             
@@ -65,7 +58,7 @@ struct WeeklyMealPlannerView: View {
                                 let weekday = calendar.component(.weekday, from: currentDate)
                                 let currentDayIndex = (weekday + 5) % 7
                                 
-                                selectedDayIndex = currentDayIndex
+                                weekPlanManager.selectedDayIndex = currentDayIndex
                                 
                                 if let household = householdManager.household {
                                     weekPlanManager.updateSelectedWeek(currentWeekStart, household: household)
@@ -86,7 +79,7 @@ struct WeeklyMealPlannerView: View {
                             }
                         }
                         
-                        let date = Calendar.current.date(byAdding: .day, value: selectedDayIndex, to: weekPlanManager.selectedWeekStart) ?? weekPlanManager.selectedWeekStart
+                        let date = Calendar.current.date(byAdding: .day, value: weekPlanManager.selectedDayIndex, to: weekPlanManager.selectedWeekStart) ?? weekPlanManager.selectedWeekStart
                         let mealDay = dayForDate(date)
                         ScrollView {
                             VStack(alignment: .leading, spacing: 12) {
@@ -115,7 +108,7 @@ struct WeeklyMealPlannerView: View {
                                 let currentDate = Date()
                                 let currentWeekStart = Calendar.current.startOfWeek(for: currentDate)
                                 
-                                selectedDayIndex = 0
+                                weekPlanManager.selectedDayIndex = 0
                                 
                                 if let household = householdManager.household {
                                     weekPlanManager.updateSelectedWeek(currentWeekStart, household: household)
