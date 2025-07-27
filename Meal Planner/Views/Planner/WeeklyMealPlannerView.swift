@@ -23,6 +23,7 @@ struct WeeklyMealPlannerView: View {
         return (weekday + 5) % 7
     }()
     @State private var isDayView: Bool = true
+    @State private var showingPrintView = false
 
     let days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     let mealSlots = ["Breakfast", "Lunch", "Dinner", "Other"]
@@ -179,6 +180,14 @@ struct WeeklyMealPlannerView: View {
                         .font(.title) // Larger navigation title
                         .foregroundColor(.black)
                 }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showingPrintView = true
+                    }) {
+                        Image(systemName: "camera")
+                            .foregroundColor(.black)
+                    }
+                }
             }
             .onAppear {
                 householdManager.loadOrCreateHousehold()
@@ -204,6 +213,9 @@ struct WeeklyMealPlannerView: View {
                     // Force load days relationship to ensure persistence
                     _ = weekPlanManager.weekPlan?.days?.allObjects
                 }
+            }
+            .sheet(isPresented: $showingPrintView) {
+                MealPlanPrintView()
             }
         }
     }

@@ -4,5 +4,7 @@
 <dict>
 	<key>UIBackgroundModes</key>
 	<array/>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app saves meal plan images to your photo library so you can print them or share them easily.</string>
 </dict>
 </plist>
