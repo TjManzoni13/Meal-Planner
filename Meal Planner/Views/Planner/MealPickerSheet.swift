@@ -16,14 +16,31 @@ struct MealPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var manualIngredients: String = ""
     @State private var showManualInput: Bool = false
+    @State private var selectedTagFilter: String = "All"
     
     // Focus states for keyboard management
     @FocusState private var isSearchFocused: Bool
     @FocusState private var isManualIngredientsFocused: Bool
 
+    let availableTags = ["All", "Breakfast", "Lunch", "Dinner"]
+
     var filteredMeals: [Meal] {
-        if search.isEmpty { return meals }
-        return meals.filter { ($0.name ?? "").localizedCaseInsensitiveContains(search) }
+        var filtered = meals
+        
+        // Apply tag filter
+        if selectedTagFilter != "All" {
+            filtered = filtered.filter { meal in
+                let tags = meal.tags?.lowercased() ?? ""
+                return tags.contains(selectedTagFilter.lowercased())
+            }
+        }
+        
+        // Apply search filter
+        if !search.isEmpty {
+            filtered = filtered.filter { ($0.name ?? "").localizedCaseInsensitiveContains(search) }
+        }
+        
+        return filtered
     }
 
     var body: some View {
@@ -38,6 +55,26 @@ struct MealPickerSheet: View {
                     .submitLabel(.search)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
+                
+                // Tag filter picker
+                HStack(spacing: 0) {
+                    ForEach(availableTags, id: \.self) { tag in
+                        Button(action: {
+                            selectedTagFilter = tag
+                        }) {
+                            Text(tag)
+                                .font(.caption)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(selectedTagFilter == tag ? Color.buttonBackground : Color.clear)
+                                .foregroundColor(selectedTagFilter == tag ? .white : .black)
+                                .cornerRadius(8)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                .padding(.horizontal)
+                
                 ScrollView {
                     LazyVStack(spacing: 8) {
                         ForEach(filteredMeals, id: \.self) { meal in
@@ -135,11 +172,16 @@ struct MealPickerSheet: View {
             .background(Color.appBackground.ignoresSafeArea())
             .foregroundColor(Color.mainText)
             .navigationTitle("Select Meal")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.inline) // Ensure title is centered
             .onTapGesture {
                 dismissAllKeyboards()
             }
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Select Meal")
+                        .font(.title) // Larger navigation title
+                        .foregroundColor(.black)
+                }
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Done") {
                         dismiss()
