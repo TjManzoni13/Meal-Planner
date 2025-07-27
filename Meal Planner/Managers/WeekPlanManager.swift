@@ -10,6 +10,9 @@ import CoreData
 
 class WeekPlanManager: ObservableObject {
     @Published var weekPlan: WeekMealPlan?
+    
+    // Shared state for selected week that persists across tab switches
+    @Published var selectedWeekStart: Date = Calendar.current.startOfWeek(for: Date())
 
     private let context = CoreDataManager.shared.context
 
@@ -36,6 +39,12 @@ class WeekPlanManager: ObservableObject {
         } catch {
             print("Failed to fetch or create week plan: \(error)")
         }
+    }
+    
+    // Update the selected week start and fetch/create the week plan
+    func updateSelectedWeek(_ newWeekStart: Date, household: Household) {
+        selectedWeekStart = newWeekStart
+        fetchOrCreateWeek(for: newWeekStart, household: household)
     }
     
     func addMeal(_ meal: Meal, to day: MealDay, slot: String) {
@@ -125,9 +134,13 @@ class WeekPlanManager: ObservableObject {
         self.objectWillChange.send()
     }
 
+    /// Fetches manual slot ingredients for a specific slot and date
+    /// Returns ingredients sorted alphabetically by name for consistent display order
     func fetchManualSlotIngredients(for slot: String, date: Date) -> [ManualSlotIngredient] {
         guard let weekPlan = weekPlan, let all = weekPlan.manualSlotIngredients as? Set<ManualSlotIngredient> else { return [] }
-        return all.filter { $0.slot == slot && $0.date != nil && Calendar.current.isDate($0.date!, inSameDayAs: date) }
+        let filtered = all.filter { $0.slot == slot && $0.date != nil && Calendar.current.isDate($0.date!, inSameDayAs: date) }
+        // Sort alphabetically by name to maintain consistent order
+        return filtered.sorted { ($0.name ?? "") < ($1.name ?? "") }
     }
 
     func deleteManualSlotIngredient(_ ingredient: ManualSlotIngredient) {

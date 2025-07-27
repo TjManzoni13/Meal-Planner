@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ShoppingListView: View {
     @StateObject private var householdManager = HouseholdManager()
-    @StateObject private var weekPlanManager = WeekPlanManager()
+    @EnvironmentObject var weekPlanManager: WeekPlanManager
     @StateObject private var shoppingListManager = ShoppingListManager()
 
     @State private var newManualItem = ""

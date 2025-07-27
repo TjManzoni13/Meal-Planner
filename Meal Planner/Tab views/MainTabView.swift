@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainTabView: View {
     @State private var selectedTab: Int = 0
+    @StateObject private var weekPlanManager = WeekPlanManager()
     
     var body: some View {
         ZStack {
@@ -12,8 +13,10 @@ struct MainTabView: View {
                     switch selectedTab {
                     case 0:
                         WeeklyMealPlannerView(selectedTab: $selectedTab)
+                            .environmentObject(weekPlanManager)
                     case 1:
                         ShoppingListView()
+                            .environmentObject(weekPlanManager)
                     case 2:
                         MealsView()
                     case 3:
@@ -22,6 +25,7 @@ struct MainTabView: View {
                         HouseholdView()
                     default:
                         WeeklyMealPlannerView(selectedTab: $selectedTab)
+                            .environmentObject(weekPlanManager)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

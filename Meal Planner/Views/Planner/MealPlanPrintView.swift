@@ -14,9 +14,18 @@ struct MealPlanPrintView: View {
     @StateObject private var householdManager = HouseholdManager()
     @StateObject private var weekPlanManager = WeekPlanManager()
     
-    @State private var startDate: Date = Calendar.current.startOfWeek(for: Date())
-    @State private var endDate: Date = Calendar.current.date(byAdding: .day, value: 6, to: Calendar.current.startOfWeek(for: Date())) ?? Date()
+    // Use the selected week from the planner, or default to current week
+    let selectedWeekStart: Date
+    @State private var startDate: Date
+    @State private var endDate: Date
     @State private var showingDatePicker = false
+    
+    // Initialize with the selected week
+    init(selectedWeekStart: Date = Calendar.current.startOfWeek(for: Date())) {
+        self.selectedWeekStart = selectedWeekStart
+        self._startDate = State(initialValue: selectedWeekStart)
+        self._endDate = State(initialValue: Calendar.current.date(byAdding: .day, value: 6, to: selectedWeekStart) ?? selectedWeekStart)
+    }
     
     let mealSlots = ["Breakfast", "Lunch", "Dinner", "Other"]
     
@@ -267,16 +276,27 @@ struct MealSlotPortraitView: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 let meals = getMealsForSlot(slot: slot, date: date)
-                if meals.isEmpty {
+                let manualIngredients = getManualIngredientsForSlot(slot: slot, date: date)
+                
+                if meals.isEmpty && manualIngredients.isEmpty {
                     Text("—")
                         .font(.body)
                         .foregroundColor(.gray)
                         .italic()
                 } else {
+                    // Display regular meals first
                     ForEach(meals, id: \.self) { meal in
                         Text(meal.name ?? "")
                             .font(.body)
                             .foregroundColor(.black)
+                    }
+                    
+                    // Display manually added ingredients
+                    ForEach(manualIngredients, id: \.id) { ingredient in
+                        Text(ingredient.name ?? "")
+                            .font(.body)
+                            .foregroundColor(.black)
+                            .italic() // Make manually added items italic to distinguish them
                     }
                 }
             }
@@ -337,6 +357,45 @@ struct MealSlotPortraitView: View {
             }
         } catch {
             print("Error fetching meals for print view: \(error)")
+        }
+        
+        return []
+    }
+    
+    private func getManualIngredientsForSlot(slot: String, date: Date) -> [ManualSlotIngredient] {
+        guard let household = household else { 
+            print("DEBUG: No household found for manual ingredients")
+            return [] 
+        }
+        
+        // Find the week plan for this date
+        let weekStart = Calendar.current.startOfWeek(for: date)
+        let context = CoreDataManager.shared.context
+        
+        let request: NSFetchRequest<WeekMealPlan> = WeekMealPlan.fetchRequest()
+        request.predicate = NSPredicate(format: "household == %@ AND weekStart == %@", household, weekStart as NSDate)
+        request.fetchLimit = 1
+        
+        do {
+            if let weekPlan = try context.fetch(request).first,
+               let manualIngredients = weekPlan.manualSlotIngredients as? Set<ManualSlotIngredient> {
+                
+                // Filter manual ingredients for this specific slot and date
+                let filteredIngredients = manualIngredients.filter { ingredient in
+                    guard let ingredientDate = ingredient.date else { return false }
+                    return ingredient.slot == slot && Calendar.current.isDate(ingredientDate, inSameDayAs: date)
+                }
+                
+                // Sort by name for consistent display
+                let sortedIngredients = filteredIngredients.sorted { ($0.name ?? "") < ($1.name ?? "") }
+                
+                print("DEBUG: Found \(sortedIngredients.count) manual ingredients for \(slot) on \(date)")
+                return sortedIngredients
+            } else {
+                print("DEBUG: No week plan found for manual ingredients")
+            }
+        } catch {
+            print("Error fetching manual ingredients for print view: \(error)")
         }
         
         return []
