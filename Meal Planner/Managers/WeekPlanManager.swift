@@ -14,8 +14,12 @@ class WeekPlanManager: ObservableObject {
     private let context = CoreDataManager.shared.context
 
     func fetchOrCreateWeek(for startDate: Date, household: Household) {
+        // Normalize the start date to remove time components for comparison
+        let calendar = Calendar.current
+        let normalizedStartDate = calendar.startOfDay(for: startDate)
+        
         let request: NSFetchRequest<WeekMealPlan> = WeekMealPlan.fetchRequest()
-        request.predicate = NSPredicate(format: "household == %@ AND weekStart == %@", household, startDate as NSDate)
+        request.predicate = NSPredicate(format: "household == %@ AND weekStart == %@", household, normalizedStartDate as NSDate)
         request.fetchLimit = 1
 
         do {
@@ -24,7 +28,7 @@ class WeekPlanManager: ObservableObject {
             } else {
                 let newPlan = WeekMealPlan(context: context)
                 newPlan.id = UUID()
-                newPlan.weekStart = startDate
+                newPlan.weekStart = normalizedStartDate
                 newPlan.household = household
                 CoreDataManager.shared.saveContext()
                 self.weekPlan = newPlan
@@ -33,7 +37,7 @@ class WeekPlanManager: ObservableObject {
             print("Failed to fetch or create week plan: \(error)")
         }
     }
-
+    
     func addMeal(_ meal: Meal, to day: MealDay, slot: String) {
         print("Adding meal '\(meal.name ?? "unknown")' to slot '\(slot)' for date \(day.date ?? Date())")
         switch slot.lowercased() {
@@ -184,6 +188,7 @@ class WeekPlanManager: ObservableObject {
     
     // Clean up old planner data (older than 4 weeks from current week)
     func cleanupOldPlannerData() {
+        // Use the corrected startOfWeek method that properly handles Monday as first day
         let currentWeekStart = Calendar.current.startOfWeek(for: Date())
         let cutoffDate = Calendar.current.date(byAdding: .weekOfYear, value: -4, to: currentWeekStart) ?? currentWeekStart
         

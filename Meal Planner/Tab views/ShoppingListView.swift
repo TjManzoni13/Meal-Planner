@@ -41,26 +41,17 @@ struct ShoppingListView: View {
                             // Usual Items Section
                             let usualItems = shoppingListManager.shoppingItems
                                 .filter { $0.originType == "usual" }
-                                .sorted { ($0.name ?? "") < ($1.name ?? "") }
-                            if !usualItems.isEmpty {
+                            let groupedUsualItems = groupItems(usualItems)
+                            if !groupedUsualItems.isEmpty {
                                 Text("Usual Items").font(.headline).padding([.leading, .top])
-                                ForEach(usualItems, id: \.objectID) { item in
-                                    HStack {
-                                        Image(systemName: item.isTicked ? "checkmark.circle.fill" : "circle")
-                                            .foregroundColor(item.isTicked ? .green : .blue)
-                                            .onTapGesture {
-                                                print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
-                                                shoppingListManager.toggleItem(item)
-                                            }
-                                        Text(item.name ?? "")
-                                            .font(.title3)
-                                        Spacer()
-                                    }
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
-                                        shoppingListManager.toggleItem(item)
-                                    }
+                                ForEach(groupedUsualItems, id: \.key) { group in
+                                    ShoppingListGroupedRow(
+                                        name: group.key,
+                                        items: group.value,
+                                        onToggle: {
+                                            toggleAll(items: group.value)
+                                        }
+                                    )
                                     .padding(.horizontal)
                                     .padding(.vertical, 8)
                                     Divider()
@@ -70,26 +61,17 @@ struct ShoppingListView: View {
                             // Generated Items Section
                             let generatedItems = shoppingListManager.shoppingItems
                                 .filter { $0.originType != "usual" }
-                                .sorted { ($0.name ?? "") < ($1.name ?? "") }
-                            if !generatedItems.isEmpty {
+                            let groupedGeneratedItems = groupItems(generatedItems)
+                            if !groupedGeneratedItems.isEmpty {
                                 Text("Generated Items").font(.headline).padding([.leading, .top])
-                                ForEach(generatedItems, id: \.objectID) { item in
-                                    HStack {
-                                        Image(systemName: item.isTicked ? "checkmark.circle.fill" : "circle")
-                                            .foregroundColor(item.isTicked ? .green : .blue)
-                                            .onTapGesture {
-                                                print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
-                                                shoppingListManager.toggleItem(item)
-                                            }
-                                        Text(item.name ?? "")
-                                            .font(.title3)
-                                        Spacer()
-                                    }
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
-                                        shoppingListManager.toggleItem(item)
-                                    }
+                                ForEach(groupedGeneratedItems, id: \.key) { group in
+                                    ShoppingListGroupedRow(
+                                        name: group.key,
+                                        items: group.value,
+                                        onToggle: {
+                                            toggleAll(items: group.value)
+                                        }
+                                    )
                                     .padding(.horizontal)
                                     .padding(.vertical, 8)
                                     Divider()
@@ -97,29 +79,17 @@ struct ShoppingListView: View {
                             }
 
                             // Ticked Off Items Section
-                            let tickedItems = shoppingListManager.tickedOffItems
-                                .sorted { ($0.name ?? "") < ($1.name ?? "") }
-                            if !tickedItems.isEmpty {
+                            let groupedTickedItems = groupItems(shoppingListManager.tickedOffItems)
+                            if !groupedTickedItems.isEmpty {
                                 Text("Ticked Off").font(.headline).padding([.leading, .top])
-                                ForEach(tickedItems, id: \.objectID) { item in
-                                    HStack {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.green)
-                                            .onTapGesture {
-                                                print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
-                                                shoppingListManager.toggleItem(item)
-                                            }
-                                        Text(item.name ?? "")
-                                            .font(.title3)
-                                            .strikethrough()
-                                            .foregroundColor(.secondary)
-                                        Spacer()
-                                    }
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        print("Tapped item: \(item.name ?? "Unnamed") | objectID: \(item.objectID)")
-                                        shoppingListManager.toggleItem(item)
-                                    }
+                                ForEach(groupedTickedItems, id: \.key) { group in
+                                    TickedOffGroupedRow(
+                                        name: group.key,
+                                        items: group.value,
+                                        onToggle: {
+                                            toggleAll(items: group.value)
+                                        }
+                                    )
                                     .padding(.horizontal)
                                     .padding(.vertical, 8)
                                     Divider()
@@ -167,7 +137,13 @@ struct ShoppingListView: View {
                 }
             }
             .navigationTitle("Shopping List")
+            .navigationBarTitleDisplayMode(.inline) // Ensure title is centered
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Shopping List")
+                        .font(.title) // Larger navigation title
+                        .foregroundColor(.black)
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if !shoppingListManager.tickedOffItems.isEmpty {
                         Button("Clear Ticked Off") {
@@ -193,6 +169,7 @@ struct ShoppingListView: View {
             }
             .onChange(of: householdManager.household) { oldValue, newValue in
                 if let household = newValue {
+                    // Use the corrected startOfWeek method that properly handles Monday as first day
                     let startOfWeek = Calendar.current.startOfWeek(for: Date())
                     weekPlanManager.fetchOrCreateWeek(for: startOfWeek, household: household)
                     loadShoppingList()
@@ -252,15 +229,33 @@ struct ShoppingListGroupedRow: View {
 
     var body: some View {
         HStack {
-            Image(systemName: "circle")
-                .foregroundColor(.blue)
-                .font(.caption)
+            // Checkbox - show checked if all items are ticked, unchecked if any are unticked
+            Image(systemName: allItemsTicked ? "checkmark.circle.fill" : "circle")
+                .foregroundColor(allItemsTicked ? .green : .blue)
+                .font(.title3)
                 .onTapGesture {
                     onToggle()
                 }
+            
             VStack(alignment: .leading, spacing: 2) {
-                Text(displayName)
-                    .font(.body)
+                HStack {
+                    Text(displayName)
+                        .font(.title3)
+                        .fontWeight(.medium)
+                    
+                    // Count badge
+                    if items.count > 1 {
+                        Text("×\(items.count)")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.accent)
+                            .cornerRadius(8)
+                    }
+                }
+                
                 if let originType = items.first?.originType {
                     Text(originDescription(for: originType, item: items.first))
                         .font(.caption)
@@ -276,9 +271,11 @@ struct ShoppingListGroupedRow: View {
     }
     
     private var displayName: String {
-        let base = items.first?.name ?? name.capitalized
-        let count = items.count
-        return count > 1 ? "\(base) x\(count)" : base
+        return name.capitalized
+    }
+    
+    private var allItemsTicked: Bool {
+        return items.allSatisfy { $0.isTicked }
     }
     
     private func originDescription(for originType: String, item: ShoppingListItem?) -> String {
@@ -314,14 +311,32 @@ struct TickedOffGroupedRow: View {
         HStack {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundColor(.green)
-                .font(.caption)
+                .font(.title3)
                 .onTapGesture {
                     onToggle()
                 }
+            
             VStack(alignment: .leading, spacing: 2) {
-                Text(displayName)
-                    .strikethrough()
-                    .foregroundColor(.secondary)
+                HStack {
+                    Text(displayName)
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .strikethrough()
+                        .foregroundColor(.secondary)
+                    
+                    // Count badge
+                    if items.count > 1 {
+                        Text("×\(items.count)")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.green)
+                            .cornerRadius(8)
+                    }
+                }
+                
                 if let originType = items.first?.originType {
                     Text(originDescription(for: originType, item: items.first))
                         .font(.caption)
@@ -337,9 +352,7 @@ struct TickedOffGroupedRow: View {
     }
     
     private var displayName: String {
-        let base = items.first?.name ?? name.capitalized
-        let count = items.count
-        return count > 1 ? "\(base) x\(count)" : base
+        return name.capitalized
     }
     
     private func originDescription(for originType: String, item: ShoppingListItem?) -> String {

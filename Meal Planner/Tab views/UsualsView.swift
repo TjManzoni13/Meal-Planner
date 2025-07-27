@@ -13,58 +13,85 @@ struct UsualsView: View {
             ZStack {
                 Color.appBackground.ignoresSafeArea() // App-wide background
                 VStack {
-                    List {
-                        // Usual Items Section
-                        Section(header: Text("Usual Items").font(.headline).foregroundColor(.black)) {
-                            if let usuals = householdManager.household?.usualItems as? Set<UsualItem> {
-                                ForEach(Array(usuals), id: \.self) { item in
-                                    HStack {
-                                        Image(systemName: "list.bullet")
-                                            .foregroundColor(.blue)
-                                            .font(.caption)
-                                        
-                                        Text(item.name ?? "")
-                                            .foregroundColor(.black)
-
-                                        Spacer()
-                                    }
-                                }
-                                .onDelete { indexSet in
-                                    if let index = indexSet.first {
-                                        let item = Array(usuals)[index]
-                                        CoreDataManager.shared.delete(item)
-                                    }
-                                }
-                            }
-
-                            HStack {
-                                TextField("Add usual item", text: $newUsualItem)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .focused($isUsualItemFocused)
-                                    .submitLabel(.done)
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            // Usual Items Section
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Usual Items")
+                                    .font(.headline)
                                     .foregroundColor(.black)
-                                    .background(Color.accent)
-                                    .cornerRadius(8)
-                                    .onSubmit {
-                                        addUsualItem()
+                                    .padding(.horizontal)
+                                
+                                VStack(alignment: .leading, spacing: 8) {
+                                    // Display existing usual items
+                                    if let usuals = householdManager.household?.usualItems as? Set<UsualItem> {
+                                        let sortedUsuals = Array(usuals).sorted { ($0.name ?? "") < ($1.name ?? "") }
+                                        ForEach(sortedUsuals, id: \.self) { item in
+                                            HStack {
+                                                Image(systemName: "list.bullet")
+                                                    .foregroundColor(Color.accent)
+                                                    .font(.title3)
+                                                
+                                                Text(item.name ?? "")
+                                                    .font(.title3)
+                                                    .foregroundColor(.black)
+
+                                                Spacer()
+                                                
+                                                Button(action: {
+                                                    deleteUsualItem(item)
+                                                }) {
+                                                    Image(systemName: "trash")
+                                                        .foregroundColor(Color.accent)
+                                                        .font(.caption)
+                                                }
+                                                .buttonStyle(PlainButtonStyle())
+                                            }
+                                            .padding(.horizontal)
+                                            .padding(.vertical, 8)
+                                            .background(Color.buttonBackground)
+                                            .cornerRadius(8)
+                                        }
                                     }
-                                Button("Add") {
-                                    addUsualItem()
+
+                                    // Add new usual item
+                                    HStack {
+                                        TextField("Add usual item", text: $newUsualItem)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .background(Color.accent)
+                                            .cornerRadius(8)
+                                            .focused($isUsualItemFocused)
+                                            .submitLabel(.done)
+                                            .foregroundColor(.black)
+                                            .onSubmit {
+                                                addUsualItem()
+                                            }
+                                        
+                                        Button("Add") {
+                                            addUsualItem()
+                                        }
+                                        .disabled(newUsualItem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                        .buttonStyle(.borderedProminent)
+                                        .tint(Color.accent)
+                                        .foregroundColor(.black)
+                                    }
+                                    .padding(.horizontal)
                                 }
-                                .disabled(newUsualItem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                                .buttonStyle(.borderedProminent)
-                                .tint(Color.buttonBackground)
-                                .foregroundColor(.black)
                             }
-                            .listRowBackground(Color.buttonBackground)
                         }
+                        .padding(.vertical)
                     }
-                    .listStyle(InsetGroupedListStyle())
                 }
             }
             .navigationTitle("Usuals")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.inline) // Ensure title is centered
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Usuals")
+                        .font(.title) // Larger navigation title
+                        .foregroundColor(.black)
+                }
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") {
@@ -97,6 +124,11 @@ struct UsualsView: View {
         CoreDataManager.shared.saveContext()
         newUsualItem = ""
         isUsualItemFocused = false
+    }
+    
+    private func deleteUsualItem(_ item: UsualItem) {
+        CoreDataManager.shared.delete(item)
+        CoreDataManager.shared.saveContext()
     }
     
     private func dismissAllKeyboards() {

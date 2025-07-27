@@ -13,8 +13,15 @@ struct WeeklyMealPlannerView: View {
     @StateObject private var mealManager = MealManager()
     @StateObject private var weekPlanManager = WeekPlanManager()
 
+    // Initialize with current week start
     @State private var selectedWeekStart: Date = Calendar.current.startOfWeek(for: Date())
-    @State private var selectedDayIndex: Int = Calendar.current.component(.weekday, from: Date()) - 2 // Monday = 0
+    @State private var selectedDayIndex: Int = {
+        // Calculate the correct day index for Monday-based week
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: Date())
+        // Convert Sunday=1, Monday=2, ..., Saturday=7 to Monday=0, Tuesday=1, ..., Sunday=6
+        return (weekday + 5) % 7
+    }()
     @State private var isDayView: Bool = true
 
     let days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -54,7 +61,10 @@ struct WeeklyMealPlannerView: View {
                             Button(action: {
                                 let currentDate = Date()
                                 let currentWeekStart = Calendar.current.startOfWeek(for: currentDate)
-                                let currentDayIndex = Calendar.current.component(.weekday, from: currentDate) - 2 // Monday = 0
+                                // Calculate the correct day index for Monday-based week
+                                let calendar = Calendar.current
+                                let weekday = calendar.component(.weekday, from: currentDate)
+                                let currentDayIndex = (weekday + 5) % 7
                                 
                                 selectedWeekStart = currentWeekStart
                                 selectedDayIndex = currentDayIndex
@@ -174,8 +184,14 @@ struct WeeklyMealPlannerView: View {
                 householdManager.loadOrCreateHousehold()
                 // Clean up old planner data when the view appears
                 weekPlanManager.cleanupOldPlannerData()
+                
                 if let household = householdManager.household {
                     mealManager.fetchMeals(for: household)
+                    // Ensure we're using the current week start
+                    let currentWeekStart = Calendar.current.startOfWeek(for: Date())
+                    if !Calendar.current.isDate(selectedWeekStart, inSameDayAs: currentWeekStart) {
+                        selectedWeekStart = currentWeekStart
+                    }
                     weekPlanManager.fetchOrCreateWeek(for: selectedWeekStart, household: household)
                     // Force load days relationship to ensure persistence
                     _ = weekPlanManager.weekPlan?.days?.allObjects

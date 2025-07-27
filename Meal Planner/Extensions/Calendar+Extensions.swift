@@ -9,8 +9,11 @@ import Foundation
 
 extension Calendar {
     func startOfWeek(for date: Date) -> Date {
-        var calendar = self
-        calendar.firstWeekday = 2 // Monday
+        // Create a new calendar instance with Monday as the first day of the week
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = Locale(identifier: "en_GB") // Use UK locale which uses Monday as first day
+        calendar.firstWeekday = 2 // Monday = 2
+        
         let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
         return calendar.date(from: components)!
     }

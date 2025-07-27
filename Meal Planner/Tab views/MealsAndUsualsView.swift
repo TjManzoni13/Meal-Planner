@@ -176,7 +176,14 @@ struct MealsView: View {
                 }
             }
             .navigationTitle("Meals")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.inline) // Ensure title is centered
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Meals")
+                        .font(.title) // Larger navigation title
+                        .foregroundColor(.black)
+                }
+            }
             .sheet(item: $selectedMeal) { meal in
                 MealDetailView(meal: meal)
             }

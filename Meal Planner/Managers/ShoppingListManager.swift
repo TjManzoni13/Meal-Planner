@@ -18,10 +18,10 @@ class ShoppingListManager: ObservableObject {
     
     // MARK: - Generate Shopping List
     
-    /// Generates a new shopping list from the current week plan
+    /// Generates a new shopping list from all week plans (not just current week)
     /// This function is called manually when the user presses the "Generate Shopping List" button
     func generateShoppingList(for weekPlan: WeekMealPlan?, household: Household?) {
-        guard let weekPlan = weekPlan, let household = household else {
+        guard let household = household else {
             clearGeneratedItems()
             return
         }
@@ -32,26 +32,36 @@ class ShoppingListManager: ObservableObject {
         // Add Usual Items (always included)
         addUsualItems(from: household)
         
-        // Add items from meal plan
-        addMealPlanItems(from: weekPlan)
+        // Get all relevant week plans (current week and future weeks, up to 4 weeks back)
+        let allWeekPlans = getAllRelevantWeekPlans(for: household)
         
-        // Save to Core Data
-        saveShoppingList(to: weekPlan)
-        // Refresh arrays from Core Data to ensure tick/untick works
-        loadShoppingList(from: weekPlan)
+        // Add items from all week plans
+        for weekPlan in allWeekPlans {
+            addMealPlanItems(from: weekPlan)
+        }
+        
+        // Save to Core Data (use the current week plan for storage)
+        if let currentWeekPlan = weekPlan {
+            saveShoppingList(to: currentWeekPlan)
+            // Refresh arrays from Core Data to ensure tick/untick works
+            loadShoppingList(from: currentWeekPlan)
+        }
     }
     
     // MARK: - Load Shopping List
     
     /// Loads existing shopping list items from Core Data
     func loadShoppingList(from weekPlan: WeekMealPlan?) {
-        guard let weekPlan = weekPlan else {
+        guard let household = weekPlan?.household else {
             clearAllItems()
             return
         }
         
+        // Get all relevant week plans and load items from all of them
+        let allWeekPlans = getAllRelevantWeekPlans(for: household)
+        
         let request: NSFetchRequest<ShoppingListItem> = ShoppingListItem.fetchRequest()
-        request.predicate = NSPredicate(format: "weekPlan == %@", weekPlan)
+        request.predicate = NSPredicate(format: "weekPlan IN %@", allWeekPlans)
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \ShoppingListItem.originDate, ascending: true),
             NSSortDescriptor(keyPath: \ShoppingListItem.name, ascending: true)
@@ -87,6 +97,9 @@ class ShoppingListManager: ObservableObject {
     
     /// Clears all ticked off items and marks corresponding meal slots as "already have"
     func clearTickedOffItems() {
+        // Store the household before clearing items
+        let household = tickedOffItems.first?.weekPlan?.household
+        
         for item in tickedOffItems {
             // Only process items that originated from meals or manual slots
             if item.originType == "meal" || item.originType == "manual_slot" {
@@ -99,6 +112,14 @@ class ShoppingListManager: ObservableObject {
         
         tickedOffItems.removeAll()
         CoreDataManager.shared.saveContext()
+        
+        // Reload the shopping list to reflect changes
+        if let household = household {
+            let allWeekPlans = getAllRelevantWeekPlans(for: household)
+            if let currentWeekPlan = allWeekPlans.first {
+                loadShoppingList(from: currentWeekPlan)
+            }
+        }
     }
     
     /// Adds a manual item to the shopping list
@@ -148,7 +169,9 @@ class ShoppingListManager: ObservableObject {
                     ("other", day.others, day.alreadyHaveOther)
                 ]
                 for (slotName, mealSet, alreadyHave) in slotInfo {
-                    if alreadyHave { continue }
+                    if alreadyHave { 
+                        continue 
+                    }
                     let meals = mealSet?.allObjects as? [Meal] ?? []
                     for meal in meals {
                         if let ingredients = meal.ingredients as? Set<Ingredient> {
@@ -184,6 +207,8 @@ class ShoppingListManager: ObservableObject {
                         item.isTicked = false
                         
                         shoppingItems.append(item)
+                    } else {
+                        continue
                     }
                 }
             }
@@ -210,54 +235,84 @@ class ShoppingListManager: ObservableObject {
     
     /// Marks the corresponding meal slot as "already have" when clearing ticked items
     private func markSlotAsAlreadyHave(for item: ShoppingListItem) {
-        guard let weekPlan = item.weekPlan,
-              let originDate = item.originDate,
+        guard let originDate = item.originDate,
               let originSlot = item.originSlot else { return }
-        if let days = weekPlan.days as? Set<MealDay> {
-            for day in days {
-                if let dayDate = day.date, Calendar.current.isDate(dayDate, inSameDayAs: originDate) {
-                    // If manual_slot, mark the slot as already have regardless of meal name
-                    if item.originType == "manual_slot" {
+        
+        // Find the week plan that contains this date
+        let weekStart = Calendar.current.startOfWeek(for: originDate)
+        let request: NSFetchRequest<WeekMealPlan> = WeekMealPlan.fetchRequest()
+        request.predicate = NSPredicate(format: "weekStart == %@", weekStart as NSDate)
+        request.fetchLimit = 1
+        
+        do {
+            if let weekPlan = try context.fetch(request).first,
+               let days = weekPlan.days as? Set<MealDay> {
+                for day in days {
+                    if let dayDate = day.date, Calendar.current.isDate(dayDate, inSameDayAs: originDate) {
+                        // If manual_slot, mark the slot as already have regardless of meal name
+                        if item.originType == "manual_slot" {
+                            switch originSlot.lowercased() {
+                            case "breakfast": day.alreadyHaveBreakfast = true
+                            case "lunch": day.alreadyHaveLunch = true
+                            case "dinner": day.alreadyHaveDinner = true
+                            case "other": day.alreadyHaveOther = true
+                            default: break
+                            }
+                            continue
+                        }
+                        // Mark the specific slot as "already have" if any meal in the slot matches
                         switch originSlot.lowercased() {
-                        case "breakfast": day.alreadyHaveBreakfast = true
-                        case "lunch": day.alreadyHaveLunch = true
-                        case "dinner": day.alreadyHaveDinner = true
-                        case "other": day.alreadyHaveOther = true
+                        case "breakfast":
+                            if let meals = day.breakfasts as? Set<Meal>, meals.contains(where: { $0.name == item.originMeal }) {
+                                day.alreadyHaveBreakfast = true
+                            }
+                        case "lunch":
+                            if let meals = day.lunches as? Set<Meal>, meals.contains(where: { $0.name == item.originMeal }) {
+                                day.alreadyHaveLunch = true
+                            }
+                        case "dinner":
+                            if let meals = day.dinners as? Set<Meal>, meals.contains(where: { $0.name == item.originMeal }) {
+                                day.alreadyHaveDinner = true
+                            }
+                        case "other":
+                            if let meals = day.others as? Set<Meal>, meals.contains(where: { $0.name == item.originMeal }) {
+                                day.alreadyHaveOther = true
+                            }
                         default: break
                         }
-                        continue
-                    }
-                    // Mark the specific slot as "already have" if any meal in the slot matches
-                    switch originSlot.lowercased() {
-                    case "breakfast":
-                        if let meals = day.breakfasts as? Set<Meal>, meals.contains(where: { $0.name == item.originMeal }) {
-                            day.alreadyHaveBreakfast = true
-                        }
-                    case "lunch":
-                        if let meals = day.lunches as? Set<Meal>, meals.contains(where: { $0.name == item.originMeal }) {
-                            day.alreadyHaveLunch = true
-                        }
-                    case "dinner":
-                        if let meals = day.dinners as? Set<Meal>, meals.contains(where: { $0.name == item.originMeal }) {
-                            day.alreadyHaveDinner = true
-                        }
-                    case "other":
-                        if let meals = day.others as? Set<Meal>, meals.contains(where: { $0.name == item.originMeal }) {
-                            day.alreadyHaveOther = true
-                        }
-                    default: break
                     }
                 }
             }
+        } catch {
+            print("Error finding week plan for marking already have: \(error)")
         }
     }
     
     /// Saves shopping list items to Core Data
     private func saveShoppingList(to weekPlan: WeekMealPlan) {
         for item in shoppingItems {
+            // Associate all items with the current week plan for storage
+            // The originDate and originSlot will help identify which week/day they came from
             item.weekPlan = weekPlan
         }
         CoreDataManager.shared.saveContext()
+    }
+    
+    /// Fetches all relevant week plans for the household (current week and future weeks, up to 4 weeks back)
+    private func getAllRelevantWeekPlans(for household: Household) -> [WeekMealPlan] {
+        let currentWeekStart = Calendar.current.startOfWeek(for: Date())
+        let cutoffDate = Calendar.current.date(byAdding: .weekOfYear, value: -4, to: currentWeekStart) ?? currentWeekStart
+        
+        let request: NSFetchRequest<WeekMealPlan> = WeekMealPlan.fetchRequest()
+        request.predicate = NSPredicate(format: "household == %@ AND weekStart >= %@", household, cutoffDate as NSDate)
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \WeekMealPlan.weekStart, ascending: true)]
+        
+        do {
+            return try context.fetch(request)
+        } catch {
+            print("Error fetching week plans for shopping list: \(error)")
+            return []
+        }
     }
     
     /// Clears generated items but keeps ticked off items and unticked manual items

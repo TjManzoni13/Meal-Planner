@@ -45,7 +45,14 @@ struct HouseholdView: View {
                 .scrollContentBackground(.hidden) // Hide default List background
                 .background(Color.appBackground) // Set List background to app color
                 .navigationTitle("Household")
-            .navigationBarTitleDisplayMode(.inline)
+                .navigationBarTitleDisplayMode(.inline) // Ensure title is centered
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Text("Household")
+                            .font(.title) // Larger navigation title
+                            .foregroundColor(.black)
+                    }
+                }
                 .onAppear {
                     householdManager.loadOrCreateHousehold()
                 }

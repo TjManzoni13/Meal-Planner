@@ -14,6 +14,7 @@ struct WeekNavigation: View {
     
     // Calculate the earliest allowed week (4 weeks ago from current week)
     private var earliestAllowedWeek: Date {
+        // Use the corrected startOfWeek method that properly handles Monday as first day
         let currentWeekStart = Calendar.current.startOfWeek(for: Date())
         return Calendar.current.date(byAdding: .weekOfYear, value: -4, to: currentWeekStart) ?? currentWeekStart
     }
