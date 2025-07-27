@@ -6,6 +6,7 @@ struct ShoppingListView: View {
     @StateObject private var shoppingListManager = ShoppingListManager()
 
     @State private var newManualItem = ""
+    @State private var showingPrintView = false
     @FocusState private var isTextFieldFocused: Bool
 
     var body: some View {
@@ -145,17 +146,26 @@ struct ShoppingListView: View {
                         .foregroundColor(.black)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    if !shoppingListManager.tickedOffItems.isEmpty {
-                        Button("Clear Ticked Off") {
-                            shoppingListManager.clearTickedOffItems()
+                    HStack(spacing: 12) {
+                        Button(action: {
+                            showingPrintView = true
+                        }) {
+                            Image(systemName: "camera")
+                                .foregroundColor(.black)
                         }
-                        .foregroundColor(Color.mainText)
-                        .background(Color.buttonBackground)
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.accent, lineWidth: 2)
-                        )
+                        
+                        if !shoppingListManager.tickedOffItems.isEmpty {
+                            Button("Clear Ticked Off") {
+                                shoppingListManager.clearTickedOffItems()
+                            }
+                            .foregroundColor(Color.mainText)
+                            .background(Color.buttonBackground)
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.accent, lineWidth: 2)
+                            )
+                        }
                     }
                 }
             }
@@ -177,6 +187,9 @@ struct ShoppingListView: View {
             }
             .onChange(of: weekPlanManager.weekPlan) { oldValue, newValue in
                 loadShoppingList()
+            }
+            .sheet(isPresented: $showingPrintView) {
+                ShoppingListPrintView(shoppingListManager: shoppingListManager)
             }
         }
     }
