@@ -6,27 +6,8 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXContainerItemProxy section */
-		033F1DB42E201E24003CB152 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 033F1D972E201E23003CB152 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 033F1D9E2E201E23003CB152;
-			remoteInfo = "Meal Planner";
-		};
-		033F1DBE2E201E24003CB152 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 033F1D972E201E23003CB152 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 033F1D9E2E201E23003CB152;
-			remoteInfo = "Meal Planner";
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
 		033F1D9F2E201E23003CB152 /* Meal Planner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Meal Planner.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		033F1DB32E201E24003CB152 /* Meal PlannerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Meal PlannerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		033F1DBD2E201E24003CB152 /* Meal PlannerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Meal PlannerUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -48,34 +29,10 @@
 			path = "Meal Planner";
 			sourceTree = "<group>";
 		};
-		033F1DB62E201E24003CB152 /* Meal PlannerTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Meal PlannerTests";
-			sourceTree = "<group>";
-		};
-		033F1DC02E201E24003CB152 /* Meal PlannerUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Meal PlannerUITests";
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		033F1D9C2E201E23003CB152 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		033F1DB02E201E24003CB152 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		033F1DBA2E201E24003CB152 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -89,8 +46,6 @@
 			isa = PBXGroup;
 			children = (
 				033F1DA12E201E23003CB152 /* Meal Planner */,
-				033F1DB62E201E24003CB152 /* Meal PlannerTests */,
-				033F1DC02E201E24003CB152 /* Meal PlannerUITests */,
 				033F1DA02E201E23003CB152 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -99,8 +54,6 @@
 			isa = PBXGroup;
 			children = (
 				033F1D9F2E201E23003CB152 /* Meal Planner.app */,
-				033F1DB32E201E24003CB152 /* Meal PlannerTests.xctest */,
-				033F1DBD2E201E24003CB152 /* Meal PlannerUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -130,52 +83,6 @@
 			productReference = 033F1D9F2E201E23003CB152 /* Meal Planner.app */;
 			productType = "com.apple.product-type.application";
 		};
-		033F1DB22E201E24003CB152 /* Meal PlannerTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 033F1DCB2E201E24003CB152 /* Build configuration list for PBXNativeTarget "Meal PlannerTests" */;
-			buildPhases = (
-				033F1DAF2E201E24003CB152 /* Sources */,
-				033F1DB02E201E24003CB152 /* Frameworks */,
-				033F1DB12E201E24003CB152 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				033F1DB52E201E24003CB152 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				033F1DB62E201E24003CB152 /* Meal PlannerTests */,
-			);
-			name = "Meal PlannerTests";
-			packageProductDependencies = (
-			);
-			productName = "Meal PlannerTests";
-			productReference = 033F1DB32E201E24003CB152 /* Meal PlannerTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		033F1DBC2E201E24003CB152 /* Meal PlannerUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 033F1DCE2E201E24003CB152 /* Build configuration list for PBXNativeTarget "Meal PlannerUITests" */;
-			buildPhases = (
-				033F1DB92E201E24003CB152 /* Sources */,
-				033F1DBA2E201E24003CB152 /* Frameworks */,
-				033F1DBB2E201E24003CB152 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				033F1DBF2E201E24003CB152 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				033F1DC02E201E24003CB152 /* Meal PlannerUITests */,
-			);
-			name = "Meal PlannerUITests";
-			packageProductDependencies = (
-			);
-			productName = "Meal PlannerUITests";
-			productReference = 033F1DBD2E201E24003CB152 /* Meal PlannerUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -188,14 +95,6 @@
 				TargetAttributes = {
 					033F1D9E2E201E23003CB152 = {
 						CreatedOnToolsVersion = 16.4;
-					};
-					033F1DB22E201E24003CB152 = {
-						CreatedOnToolsVersion = 16.4;
-						TestTargetID = 033F1D9E2E201E23003CB152;
-					};
-					033F1DBC2E201E24003CB152 = {
-						CreatedOnToolsVersion = 16.4;
-						TestTargetID = 033F1D9E2E201E23003CB152;
 					};
 				};
 			};
@@ -214,28 +113,12 @@
 			projectRoot = "";
 			targets = (
 				033F1D9E2E201E23003CB152 /* Meal Planner */,
-				033F1DB22E201E24003CB152 /* Meal PlannerTests */,
-				033F1DBC2E201E24003CB152 /* Meal PlannerUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		033F1D9D2E201E23003CB152 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		033F1DB12E201E24003CB152 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		033F1DBB2E201E24003CB152 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -252,34 +135,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		033F1DAF2E201E24003CB152 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		033F1DB92E201E24003CB152 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		033F1DB52E201E24003CB152 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 033F1D9E2E201E23003CB152 /* Meal Planner */;
-			targetProxy = 033F1DB42E201E24003CB152 /* PBXContainerItemProxy */;
-		};
-		033F1DBF2E201E24003CB152 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 033F1D9E2E201E23003CB152 /* Meal Planner */;
-			targetProxy = 033F1DBE2E201E24003CB152 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		033F1DC72E201E24003CB152 /* Debug */ = {
@@ -294,11 +150,12 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Meal Planner/Info.plist";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app saves meal plan images to your photo library so you can print them or share them easily.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -324,11 +181,12 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Meal Planner/Info.plist";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app saves meal plan images to your photo library so you can print them or share them easily.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -463,78 +321,6 @@
 			};
 			name = Release;
 		};
-		033F1DCC2E201E24003CB152 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 5H989765ZG;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tjmanzoni.Meal-PlannerTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Meal Planner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Meal Planner";
-			};
-			name = Debug;
-		};
-		033F1DCD2E201E24003CB152 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 5H989765ZG;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tjmanzoni.Meal-PlannerTests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Meal Planner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Meal Planner";
-			};
-			name = Release;
-		};
-		033F1DCF2E201E24003CB152 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 5H989765ZG;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tjmanzoni.Meal-PlannerUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "Meal Planner";
-			};
-			name = Debug;
-		};
-		033F1DD02E201E24003CB152 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 5H989765ZG;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tjmanzoni.Meal-PlannerUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "Meal Planner";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -552,24 +338,6 @@
 			buildConfigurations = (
 				033F1DC72E201E24003CB152 /* Debug */,
 				033F1DC82E201E24003CB152 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		033F1DCB2E201E24003CB152 /* Build configuration list for PBXNativeTarget "Meal PlannerTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				033F1DCC2E201E24003CB152 /* Debug */,
-				033F1DCD2E201E24003CB152 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		033F1DCE2E201E24003CB152 /* Build configuration list for PBXNativeTarget "Meal PlannerUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				033F1DCF2E201E24003CB152 /* Debug */,
-				033F1DD02E201E24003CB152 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
